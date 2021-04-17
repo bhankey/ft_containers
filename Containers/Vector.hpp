@@ -35,7 +35,22 @@ private:
   void moveToEnd(iterator start) {
     iterator pos = start;
     while (++pos != end()) {
-      swap(start++, pos);
+      std::swap(*start, *pos);
+      start++;
+    }
+  }
+  void moveToRight(size_type start, difference_type offset) {
+    size_type index_end = end().operator->() - begin().operator->();
+    size_type tmp = index_end - 1;
+    size_type count = index_end - start;
+    size_ += offset;
+    --offset;
+    while (count > 0) {
+      allocator_.construct(array_ + index_end + offset, *(array_ + tmp));
+      allocator_.destroy(array_ + tmp);
+      --index_end;
+      --tmp;
+      --count;
     }
   }
 public:
@@ -73,16 +88,26 @@ public:
   }
 
   // Assign
-  void assign(size_type count, const T& value);
+  void assign(size_type count, const T& value) {
+    clear();
+    insert(begin(), count, value);
+  }
   template<class InputIt>
-  void assign(InputIt first, InputIt last);
-
+  void assign(InputIt first, InputIt last) {
+    clear();
+    insert(begin(), first, last);
+  }
 
   // Element access
-  reference at(size_type pos);
+  reference at(size_type pos) {
+    if (pos >= size_) {
+      throw std::out_of_range("index out of range");
+    }
+    return *(array_ + pos);
+  }
   const_reference at(size_type pos) const {
     if (pos >= size_) {
-      std::out_of_range("index out of range");
+      throw std::out_of_range("index out of range");
     }
     return *(array_ + pos);
   }
@@ -141,43 +166,164 @@ public:
   size_type max_size() const {
     return allocator_.max_size();
   }
-  void reserve(size_type new_cap);
   size_type capacity() const {
     return capacity_;
   }
+  void reserve(size_type new_cap) {
+    if (new_cap > capacity_) {
+      pointer new_array = allocator_.allocate(new_cap);
+      for (size_type i = 0; i < size_; ++i) {
+        allocator_.construct(new_array + i, *(array_ +i));
+        allocator_.destroy(array_ + i);
+      }
+      allocator_.deallocate(array_, capacity_);
+      capacity_ = new_cap;
+      array_ = new_array;
+    }
+  }
 
   // Modifiers
-  void clear();
-  iterator insert(iterator pos, const T& value);
-  void insert(iterator pos, size_type count,const T& value);
+  void clear() {
+    erase(begin(), end());
+  }
+  iterator insert(iterator pos, const T& value) {
+    if (pos == end()) {
+      push_back(value);
+      return (end() - 1);
+    }
+    size_type index_pos = pos.operator->() - begin().operator->();
+    if (size_ == capacity_) {
+      if (size_ == 0) {
+        reserve(1);
+      } else {
+        reserve((capacity_ * 1.5f) + 1);
+      }
+    }
+    moveToRight(index_pos, 1);
+    allocator_.construct((array_ + index_pos), value);
+    return iterator(array_ + index_pos);
+  }
+  void insert(iterator pos, size_type count, const T& value){
+    size_type index_pos = pos.operator->() - begin().operator->();
+    if (pos == end()) {
+      while (count > 0) {
+        push_back(value);
+        --count;
+      }
+      return;
+    }
+    if (size_ + count > capacity_) {
+      reserve(static_cast<size_type>((capacity_ * 1.5f)) + count);
+    }
+    moveToRight(index_pos, count);
+    size_type tmp = index_pos;
+    while (count > 0) {
+      allocator_.construct(array_ + tmp, value);
+      ++tmp;
+      --count;
+    }
+  }
   template<class InputIt>
-  void insert(iterator pos, InputIt first, InputIt last);
+  void insert(iterator pos, InputIt first, InputIt last) {
+    while (first != last) {
+      pos = insert(pos, *first) + 1;
+      ++first;
+    }
+  }
   iterator erase(iterator pos) {
     if (pos + 1 != end()) {
-
+      moveToEnd(pos);
     }
     allocator_.destroy(array_ + size_ - 1);
+    --size_;
     return pos;
   }
-  iterator erase(iterator first, iterator last);
-  void push_back(const T& value);
-  void pop_back();
-  void resize(size_type count, T value = T());
-  void swap(Vector& other);
+  iterator erase(iterator first, iterator last) {
+    if (first != last) {
+      iterator it = first;
+      while (it + 1 != last) {
+        erase(it++);
+      }
+    }
+    return first;
+  }
+  void pop_back() {
+    if (size_ != 0) {
+      erase(end() - 1);
+    }
+  }
+  void push_back(const T& value) {
+    if (size_ == capacity_) {
+      if (size_ == 0) {
+        reserve(1);
+      } else {
+        reserve((capacity_ * 1.5f) + 1);
+      }
+    }
+    allocator_.construct(array_ + size_, value);
+    size_++;
+  }
+  void resize(size_type count, T value = T()) { // TODO test a lot
+    if (count > capacity_) {
+      reserve(count);
+    }
+    if (count > size_) {
+      while(count != size_) {
+        allocator_.construct(array_ + size_, value);
+        size_++;
+      }
+    } else if (count < size_) {
+      erase(count - 1, end());
+    }
+  }
+  void swap(Vector& other) {
+    std::swap(array_, other.array_);
+    std::swap(size_, other.size_);
+    std::swap(capacity_, other.capacity_);
+    std::swap(allocator_, other.allocator_);
+  }
 };
 
 template<class T, class Alloc>
-bool operator==(const ft::Vector<T,Alloc>& lhs, const ft::Vector<T,Alloc>& rhs);
+bool operator==(const ft::Vector<T,Alloc>& lhs, const ft::Vector<T,Alloc>& rhs) {
+  if (lhs.size() != rhs.size()) {
+    return false;
+  }
+  typename ft::Vector<T,Alloc>::const_iterator lit = lhs.begin(), rit = rhs.begin();
+  for (; lit != lhs.begin() && rit != rhs.begin(); ++lit, ++rit) {
+    if (*lit != rit) {
+      return false;
+    }
+  }
+  if (lit != lhs.end() || rit != rhs.end()) {
+    return false;
+  }
+  return true;
+}
 template<class T, class Alloc>
-bool operator!=(const ft::Vector<T,Alloc>& lhs, const ft::Vector<T,Alloc>& rhs);
+bool operator!=(const ft::Vector<T,Alloc>& lhs, const ft::Vector<T,Alloc>& rhs) {
+  return !(lhs == rhs);
+}
 template<class T, class Alloc>
-bool operator<(const ft::Vector<T,Alloc>& lhs, const ft::Vector<T,Alloc>& rhs);
+bool operator<(const ft::Vector<T,Alloc>& lhs, const ft::Vector<T,Alloc>& rhs) {
+  return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}
 template<class T, class Alloc>
-bool operator>(const ft::Vector<T,Alloc>& lhs, const ft::Vector<T,Alloc>& rhs);
+bool operator>(const ft::Vector<T,Alloc>& lhs, const ft::Vector<T,Alloc>& rhs) {
+  return rhs < lhs;
+}
 template<class T, class Alloc>
-bool operator<=(const ft::Vector<T,Alloc>& lhs, const ft::Vector<T,Alloc>& rhs);
+bool operator<=(const ft::Vector<T,Alloc>& lhs, const ft::Vector<T,Alloc>& rhs) {
+  return !(rhs < lhs);
+}
 template<class T, class Alloc>
-bool operator>=(const ft::Vector<T,Alloc>& lhs, const ft::Vector<T,Alloc>& rhs);
+bool operator>=(const ft::Vector<T,Alloc>& lhs, const ft::Vector<T,Alloc>& rhs) {
+  return !(lhs < rhs);
+}
+template< class T, class Alloc >
+void swap(ft::Vector<T,Alloc>& lhs, ft::Vector<T,Alloc>& rhs) {
+  lhs.swap(rhs);
+}
 
 
 }
