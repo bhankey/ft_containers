@@ -6,7 +6,7 @@
 #define FT_CONTAINERS__VECTOR_HPP_
 
 #include "VectorIterator.hpp"
-#include "Reverseiterator.hpp"
+#include "ReverseIterator.hpp"
 #include <memory.h>
 
 namespace ft {
@@ -31,7 +31,14 @@ class Vector {
   allocator_type allocator_;
   size_t size_;
   size_t capacity_;
- public:
+private:
+  void moveToEnd(iterator start) {
+    iterator pos = start;
+    while (++pos != end()) {
+      swap(start++, pos);
+    }
+  }
+public:
 
   // Constructor and destructors
   explicit Vector(const Allocator& alloc = Allocator()): allocator_(alloc), size_(0), capacity_(0) {
@@ -73,13 +80,30 @@ class Vector {
 
   // Element access
   reference at(size_type pos);
-  const_reference at(size_type pos) const;
-  reference operator[](size_type pos);
-  const_reference operator[](size_type pos) const;
-  reference front();
-  const_reference front() const;
-  reference back();
-  const_reference back() const;
+  const_reference at(size_type pos) const {
+    if (pos >= size_) {
+      std::out_of_range("index out of range");
+    }
+    return *(array_ + pos);
+  }
+  reference operator[](size_type pos) {
+    return *(array_ + pos);
+  }
+  const_reference operator[](size_type pos) const {
+    return *(array_ + pos);
+  }
+  reference front() {
+    return *array_;
+  }
+  const_reference front() const {
+    return *array_;
+  }
+  reference back() {
+    return *(array_ + size_ - 1);
+  }
+  const_reference back() const {
+    return (array_ + size_ - 1);
+  }
 
   // Iterators
   iterator begin() {
@@ -128,7 +152,13 @@ class Vector {
   void insert(iterator pos, size_type count,const T& value);
   template<class InputIt>
   void insert(iterator pos, InputIt first, InputIt last);
-  iterator erase(iterator pos);
+  iterator erase(iterator pos) {
+    if (pos + 1 != end()) {
+
+    }
+    allocator_.destroy(array_ + size_ - 1);
+    return pos;
+  }
   iterator erase(iterator first, iterator last);
   void push_back(const T& value);
   void pop_back();
