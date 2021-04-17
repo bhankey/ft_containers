@@ -1,11 +1,14 @@
 #include <iostream>
 #include "Containers/Vector.hpp"
 #include <vector>
+#include "print.hpp"
 
 int main() {
-  ft::Vector<int>  a(2, 10);
-  for (ft::Vector<int>::reverse_iterator it = a.rbegin(); it != a.rend(); ++it) {
-    std::cout << *it << std::endl;
-  }
+
+  ft::Vector<std::string> strings(2, "lol");
+  strings.insert(strings.begin() + 1 , 100, "pam");
+  printNormal(strings);
+  printIterator(strings);
+  printByAlgorithms(strings);
   return 0;
 }
