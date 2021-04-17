@@ -31,8 +31,6 @@ class VectorIterator {
   ~VectorIterator() {
   };
 
-
-
   reference operator*() const {
     return *p;
   }
@@ -69,6 +67,9 @@ class VectorIterator {
   VectorIterator operator-(difference_type diff) const {
     return VectorIterator<Type>(p - diff);
   }
+  difference_type operator-(const VectorIterator &it) const {
+    return p - it.p;
+  }
   VectorIterator &operator+=(difference_type diff) {
     p += diff;
     return *this;
@@ -103,11 +104,5 @@ class VectorIterator {
   }
 
 };
-
-class ReverseVectorIterator {
- public:
-
-};
-
 }
 #endif //FT_CONTAINERS_ITERATORS_VECTORITERATOR_HPP_
