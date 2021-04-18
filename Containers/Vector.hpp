@@ -7,6 +7,7 @@
 
 #include "VectorIterator.hpp"
 #include "ReverseIterator.hpp"
+#include "Utils.hpp"
 #include <memory.h>
 
 namespace ft {
@@ -65,8 +66,15 @@ public:
       allocator_.construct(array_ + i, value);
     }
   }
-//  template< class InputIt>
-//      Vector(InputIt first, InputIt last, const Allocator& alloc = Allocator());
+  template< class InputIt>
+  Vector(InputIt first, InputIt last, const Allocator& alloc = Allocator()): allocator_(alloc) {
+    size_ = ft::distance(first, last);
+    capacity_ = size_;
+    array_ = allocator_.allocate(size_);
+    for (size_type i = 0; first != last; ++first, ++i) {
+      allocator_.construct(array_ + i, *first);
+    }
+  }
   Vector(const Vector& other): allocator_(other.allocator_), size_(other.size_), capacity_(other.capacity_) {
     array_ = allocator_.allocate(capacity_);
     for (size_type i = 0; i < size_; ++i) {
@@ -187,17 +195,17 @@ public:
     erase(begin(), end());
   }
   iterator insert(iterator pos, const T& value) {
-    if (pos == end()) {
-      push_back(value);
-      return (end() - 1);
-    }
     size_type index_pos = pos.operator->() - begin().operator->();
     if (size_ == capacity_) {
       if (size_ == 0) {
         reserve(1);
       } else {
-        reserve((capacity_ * 1.5f) + 1);
+        reserve((capacity_ ) + 1);
       }
+    }
+    if (pos == end()) {
+      push_back(value);
+      return (end() - 1);
     }
     moveToRight(index_pos, 1);
     allocator_.construct((array_ + index_pos), value);
@@ -205,15 +213,15 @@ public:
   }
   void insert(iterator pos, size_type count, const T& value){
     size_type index_pos = pos.operator->() - begin().operator->();
+    if (size_ + count > capacity_) {
+      reserve(static_cast<size_type>((capacity_)) + count);
+    }
     if (pos == end()) {
       while (count > 0) {
         push_back(value);
         --count;
       }
       return;
-    }
-    if (size_ + count > capacity_) {
-      reserve(static_cast<size_type>((capacity_ * 1.5f)) + count);
     }
     moveToRight(index_pos, count);
     size_type tmp = index_pos;
@@ -239,12 +247,10 @@ public:
     return pos;
   }
   iterator erase(iterator first, iterator last) {
-    if (first != last) {
-      iterator it = first;
-      while (it + 1 != last) {
-        erase(it++);
+      while (first != last) {
+        erase(first);
+        --last;
       }
-    }
     return first;
   }
   void pop_back() {
@@ -263,7 +269,7 @@ public:
     allocator_.construct(array_ + size_, value);
     size_++;
   }
-  void resize(size_type count, T value = T()) { // TODO test a lot
+  void resize(size_type count, T value = T()) {
     if (count > capacity_) {
       reserve(count);
     }
@@ -273,7 +279,7 @@ public:
         size_++;
       }
     } else if (count < size_) {
-      erase(count - 1, end());
+      erase(iterator(array_ + count), end());
     }
   }
   void swap(Vector& other) {
@@ -290,8 +296,8 @@ bool operator==(const ft::Vector<T,Alloc>& lhs, const ft::Vector<T,Alloc>& rhs) 
     return false;
   }
   typename ft::Vector<T,Alloc>::const_iterator lit = lhs.begin(), rit = rhs.begin();
-  for (; lit != lhs.begin() && rit != rhs.begin(); ++lit, ++rit) {
-    if (*lit != rit) {
+  for (; lit != lhs.end() && rit != rhs.end(); ++lit, ++rit) {
+    if (*lit != *rit) {
       return false;
     }
   }
