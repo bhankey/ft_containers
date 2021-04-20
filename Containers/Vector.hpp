@@ -90,9 +90,14 @@ public:
 
   Vector &operator=(const Vector& other) {
     if (this != &other) {
-     // clear();
-
+     clear(); // TODO test
+     allocator_.deallocate(array_, capacity_);
+     allocator_ = other.allocator_;
+     size_ = 0;
+     capacity_ = 0;
+     assign(other.begin(), other.end());
     }
+    return *this;
   }
 
   // Assign

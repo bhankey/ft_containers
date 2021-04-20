@@ -31,5 +31,12 @@ void printByAlgorithms(const Container &c) {
   std::copy(c.begin(), c.end(), std::ostream_iterator<typename Container::value_type>(std::cout, " "));
   std::cout << std::endl;
 }
+template<typename Container>
+void printByAlgorithmsReverse(const Container &c) {
+  std::copy(c.rbegin(), c.rend(), std::ostream_iterator<typename Container::value_type>(std::cout, " "));
+  std::cout << std::endl;
+}
+
+
 
 #endif //FT_CONTAINERS_FUNCTIONSFORTEST_PRINT_HPP_
