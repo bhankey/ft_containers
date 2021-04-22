@@ -36,19 +36,19 @@ class List {
   Node_allocator_ node_allocator_;
   List_basic_node node_;
 
-  List_node<T> *create_node(const value_type& x) {
+  List_node<T> *create_node(const value_type &x) {
     List_node<T> *ptr = node_allocator_.allocate(1);
     allocator_.construct(&(ptr->data), x);
     ++size_;
     return ptr;
   }
-  void  destroy_node(List_basic_node *node) {
+  void destroy_node(List_basic_node *node) {
     _Node_pointer ptr = static_cast<_Node_pointer>(node);
     allocator_.destroy(&(ptr->data));
     node_allocator_.deallocate(ptr, 1);
     --size_;
   }
-  void make_connection(List_basic_node *prev, List_basic_node *next)  {
+  void make_connection(List_basic_node *prev, List_basic_node *next) {
     prev->next = next;
     next->prev = prev;
   }
@@ -59,16 +59,16 @@ class List {
  public:
 
   // Constructor and destructors
-  List(): size_(0), allocator_(Allocator()), node_allocator_(), node_() {
+  List() : size_(0), allocator_(Allocator()), node_allocator_(), node_() {
     node_.next = &node_;
     node_.prev = &node_;
   }
-  explicit List(const Allocator& alloc): size_(0), allocator_(alloc), node_allocator_(), node_() {
+  explicit List(const Allocator &alloc) : size_(0), allocator_(alloc), node_allocator_(), node_() {
     node_.next = &node_;
     node_.prev = &node_;
   }
-  explicit List(size_type count, const T& value = T(), const Allocator &alloc = Allocator()):
-          size_(0), allocator_(alloc), node_allocator_(), node_()  {
+  explicit List(size_type count, const T &value = T(), const Allocator &alloc = Allocator()) :
+      size_(0), allocator_(alloc), node_allocator_(), node_() {
     node_.next = &node_;
     node_.prev = &node_;
     List_basic_node *ptr = &node_;
@@ -81,7 +81,8 @@ class List {
     make_connection(ptr, &node_);
   }
   template<typename InputIt>
-  List(InputIt first, InputIt last, const Allocator &alloc = Allocator()): size_(0), allocator_(alloc), node_allocator_(), node_() {
+  List(InputIt first, InputIt last, const Allocator &alloc = Allocator())
+      : size_(0), allocator_(alloc), node_allocator_(), node_() {
     node_.next = &node_;
     node_.prev = &node_;
     while (first != last) {
@@ -89,8 +90,8 @@ class List {
       ++first;
     }
   }
-  List(const List &other):
-  size_(0), allocator_(other.allocator_), node_allocator_(other.node_allocator_), node_() {
+  List(const List &other) :
+      size_(0), allocator_(other.allocator_), node_allocator_(other.node_allocator_), node_() {
     node_.next = &node_;
     node_.prev = &node_;
     for (const_iterator it = other.begin(); it != other.end(); ++it) {
@@ -152,7 +153,7 @@ class List {
     return const_iterator(node_.next);
   }
   iterator end() {
-    return iterator (&node_);
+    return iterator(&node_);
   }
   const_iterator end() const {
     return const_iterator(&node_);
@@ -192,15 +193,39 @@ class List {
     node_.next = &node_;
     node_.prev = &node_;
   }
-  iterator insert(iterator pos, const T& value) {
-
+  iterator insert(iterator pos, const T &value) {
+    List_basic_node *new_node = create_node(value);
+    List_basic_node *ptr_pos = pos.Node;
+    make_connection(ptr_pos->prev, new_node, ptr_pos);
+    return iterator(new_node);
   }
-  void insert(iterator pos, size_type count, const T& value);
-  template< class InputIt >
-  void insert(iterator pos, InputIt first, InputIt last);
-  iterator erase(iterator pos);
-  iterator erase(iterator first, iterator last);
-  void push_back(const T& value) {
+  void insert(iterator pos, size_type count, const T &value) {
+    while (count != 0) {
+      insert(pos, value);
+      --count;
+    }
+  }
+  template<class InputIt>
+  void insert(iterator pos, InputIt first, InputIt last) {
+    while (first != last) {
+      insert(pos, *first);
+      ++first;
+    }
+  }
+  iterator erase(iterator pos) {
+    List_basic_node *ptr = pos.Node;
+    List_basic_node *return_ptr = ptr->next;
+    make_connection(ptr->prev, ptr->next);
+    destroy_node(ptr);
+    return return_ptr;
+  }
+  iterator erase(iterator first, iterator last) {
+    while (first != last) {
+      erase(first++);
+    }
+    return first;
+  }
+  void push_back(const T &value) {
     List_basic_node *tmp = create_node(value);
     make_connection(node_.prev, tmp, &node_);
   }
@@ -209,7 +234,7 @@ class List {
     make_connection(tmp->prev, &node_);
     destroy_node(tmp);
   }
-  void push_front(const T& value) {
+  void push_front(const T &value) {
     List_basic_node *tmp = create_node(value);
     make_connection(&node_, tmp, node_.next);
   }
@@ -223,14 +248,13 @@ class List {
       while (count > size_) {
         push_back(value);
       }
-    }
-    else if (count < size_) {
+    } else if (count < size_) {
       while (count < size_) {
         pop_back();
       }
     }
   }
-  void swap(List& other) {
+  void swap(List &other) {
     std::swap(size_, other.size_);
     std::swap(allocator_, other.allocator_);
     std::swap(node_allocator_, other.node_allocator_);
@@ -238,38 +262,164 @@ class List {
   }
 
   // Operations
-  void merge(List& other);
-  template <class Compare>
-  void merge(List& other, Compare comp);
-  void splice(const_iterator pos, List& other);
-  void splice(const_iterator pos, List& other, const_iterator it);
-  void splice(const_iterator pos, List& other, const_iterator first, const_iterator last);
-  void remove(const T& value);
+  void merge(List &other) {
+    merge(other, std::less<value_type>());
+  }
+  template<class Compare>
+  void merge(List &other, Compare comp) {
+    if (this != &other) {
+      List_basic_node *this_ptr = node_.next;
+      List_basic_node *other_ptr = other.node_.next;
+      while (this_ptr != &node_ && other_ptr != &other.node_) {
+        if (comp(static_cast<_Node_pointer>(this_ptr)->data,
+                 static_cast<_Node_pointer>(other_ptr)->data)) {
+          this_ptr = this_ptr->next;
+        } else {
+          make_connection(other_ptr->prev, other_ptr->next);
+          List_basic_node *tmp = other_ptr;
+          other_ptr = other_ptr->next;
+          make_connection(this_ptr->prev, tmp, this_ptr);
+          ++size_;
+        }
+      }
+      while (other_ptr != &other.node_) {
+        make_connection(other_ptr->prev, other_ptr->next);
+        List_basic_node *tmp = other_ptr;
+        other_ptr = other_ptr->next;
+        make_connection(this_ptr->prev, tmp, this_ptr);
+        ++size_;
+      }
+      other.clear();
+    }
+  }
+  void splice(iterator pos, List &other) {
+    splice(pos, other, other.begin(), other.end());
+  }
+  void splice(iterator pos, List &other, iterator it) {
+    List_basic_node *this_ptr = pos.Node;
+    List_basic_node *other_ptr = it.Node;
+    make_connection(other_ptr->prev, other_ptr->next);
+    make_connection(this_ptr->prev, other_ptr, this_ptr);
+    --other.size_;
+    ++size_;
+  }
+  void splice(iterator pos, List &other, iterator first, iterator last) {
+    List_basic_node *this_ptr = pos.Node;
+    List_basic_node *start_ptr = first.Node;
+    List_basic_node *finish_ptr = last.Node;
+    while (start_ptr != finish_ptr) {
+      List_basic_node *tmp = start_ptr;
+      make_connection(start_ptr->prev, start_ptr->next);
+      start_ptr = start_ptr->next;
+      make_connection(this_ptr->prev, tmp, this_ptr);
+      --other.size_;
+      ++size_;
+    }
+  }
+  void remove(const T &value) {
+    for (iterator it = begin(); it != end(); ++it) {
+      if (*it == value) {
+        it = erase(it);
+      } else {
+        ++it;
+      }
+    }
+  }
   template<typename UnaryPredicate>
-  void remove_if(UnaryPredicate p);
-  void reverse();
-  void unique();
-  template< class BinaryPredicate >
-  void unique(BinaryPredicate p);
-  void sort();
-  template< class Compare >
-  void sort(Compare comp);
+  void remove_if(UnaryPredicate p) {
+    for (iterator it = begin(); it != end(); ++it) {
+      if (p(*it) == true) {
+        it = erase(it);
+      } else {
+        ++it;
+      }
+    }
+  }
+  void reverse() {
+    List_basic_node *ptr = node_.next;
+    while (ptr != &node_) {
+      List_basic_node *tmp = ptr->next;
+      std::swap(ptr->next, ptr->prev);
+      ptr = tmp;
+    }
+    std::swap(node_.next, node_.prev);
+  }
+  void unique() {
+    unique(std::equal_to<value_type>());
+  }
+  template<class BinaryPredicate>
+  void unique(BinaryPredicate p) {
+    List_basic_node *start = node_.next;
+    while (start->next != &node_) {
+      if (p(static_cast<_Node_pointer>(start)->data,
+            static_cast<_Node_pointer>(start->next)->data)) {
+        List_basic_node *tmp = start->next;
+        make_connection(start, tmp->next);
+        destroy_node(tmp);
+      } else {
+        start = start->next;
+      }
+    }
+  }
+  void sort() {
+    sort(std::less<value_type>());
+  }
+  template<class Compare>
+  void sort(Compare comp) {
+    if (size_ <= 1) {
+      return;
+    }
+    List<value_type, allocator_type> tmp;
+    iterator centre = begin();
+    advance(centre, size_ / 2);
+    tmp.splice(tmp.begin(), *this, begin(), centre);
+    sort(comp);
+    tmp.sort(comp);
+    merge(tmp, comp);
+  }
 };
 template<class T, class Alloc>
-bool operator==(const List<T,Alloc>& lhs, const List<T,Alloc>& rhs);
-template<class T, class Alloc>
-bool operator!=(const List<T,Alloc>& lhs, const List<T,Alloc>& rhs);
-template<class T, class Alloc>
-bool operator<(const List<T,Alloc>& lhs, const List<T,Alloc>& rhs);
-template<class T, class Alloc>
-bool operator<=(const List<T,Alloc>& lhs, const List<T,Alloc>& rhs);
-template<class T, class Alloc>
-bool operator>(const List<T,Alloc>& lhs, const List<T,Alloc>& rhs);
-template<class T, class Alloc>
-bool operator>=(const List<T,Alloc>& lhs, const List<T,Alloc>& rhs);
+bool operator==(const List<T,Alloc>& lhs, const List<T,Alloc>& rhs) {
+  if (lhs.size() != rhs.size()) {
+    return false;
+  }
+  typename ft::Vector<T,Alloc>::const_iterator lit = lhs.begin(), rit = rhs.begin();
+  for (; lit != lhs.end() && rit != rhs.end(); ++lit, ++rit) {
+    if (*lit != *rit) {
+      return false;
+    }
+  }
+  if (lit != lhs.end() || rit != rhs.end()) {
+    return false;
+  }
+  return true;
+}
 
 template<class T, class Alloc>
-void swap(List<T,Alloc>& lhs, List<T,Alloc>& rhs );
+bool operator!=(const List<T,Alloc>& lhs, const List<T,Alloc>& rhs) {
+  return !(lhs == rhs);
+}
+template<class T, class Alloc>
+bool operator<(const List<T,Alloc>& lhs, const List<T,Alloc>& rhs) {
+  return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}
+template<class T, class Alloc>
+bool operator<=(const List<T,Alloc>& lhs, const List<T,Alloc>& rhs) {
+  return !(rhs < lhs);
+}
+template<class T, class Alloc>
+bool operator>(const List<T,Alloc>& lhs, const List<T,Alloc>& rhs) {
+  return rhs < lhs;
+}
+template<class T, class Alloc>
+bool operator>=(const List<T,Alloc>& lhs, const List<T,Alloc>& rhs) {
+  return !(lhs < rhs);
+}
+
+template<class T, class Alloc>
+void swap(List<T,Alloc>& lhs, List<T,Alloc>& rhs ) {
+  lhs.swap(rhs);
+}
 
 
 }

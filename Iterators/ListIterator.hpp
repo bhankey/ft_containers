@@ -19,9 +19,11 @@ class ListIterator {
   typedef std::ptrdiff_t difference_type;
   typedef Type *pointer;
   typedef Type &reference;
- private:
+
+
   List_basic_node *Node;
- public:
+
+
   ListIterator(): Node() {
   }
   ListIterator(const ListIterator &it): Node(it.Node) {
