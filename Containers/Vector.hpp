@@ -90,7 +90,7 @@ public:
 
   Vector &operator=(const Vector& other) {
     if (this != &other) {
-     clear(); // TODO test
+     clear();
      allocator_.deallocate(array_, capacity_);
      allocator_ = other.allocator_;
      size_ = 0;

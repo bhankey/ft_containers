@@ -11,7 +11,7 @@
 
 template<typename Vector>
 void PrintVectorInfo(Vector vec) {
-  std::cout << "size: " << vec.size() << " capacity: " << vec.capacity() << " max_size: " << vec.max_size() << std::endl;
+  std::cout << "Vec size: " << vec.size() << " capacity: " << vec.capacity() << " max_size: " << vec.max_size() << std::endl;
   if (!vec.empty()) {
     std::cout << "back: " << vec.back() << " front: " << vec.front() << std::endl;
   }

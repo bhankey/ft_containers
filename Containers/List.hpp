@@ -173,7 +173,7 @@ class List {
 
   // Capacity functions
   bool empty() const {
-    return size_;
+    return !size_;
   }
   size_type size() const {
     return size_;
