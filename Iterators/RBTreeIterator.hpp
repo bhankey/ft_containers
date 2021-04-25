@@ -13,61 +13,199 @@ template<typename Type>
 class TreeIterator {
  public:
   typedef TreeIterator<Type> _Self;
-  typedef RB_tree_node_base *Base_Node_ptr;
-  typedef RB_tree_node<Type> *Node_ptr
+  typedef RB_tree_node<Type> *Node_ptr;
   typedef std::bidirectional_iterator_tag iterator_category;
   typedef Type value_type;
   typedef std::ptrdiff_t difference_type;
   typedef Type &reference;
   typedef Type *pointer;
 
-  Base_Node_ptr Node;
+  Node_ptr Node;
 
-  TreeIterator();
-  TreeIterator(const TreeIterator &it);
-  ~TreeIterator();
-  TreeIterator &operator=(const _Self &it);
-  explicit TreeIterator(Base_Node_ptr x);
-  reference operator*() const;
-  pointer operator->() const;
-  _Self &operator++();
-  _Self operator++(int);
-  _Self &operator--();
-  _Self operator--(int);
-  bool operator==(const _Self &it) const;
-  bool operator!=(const _Self &it) const;
-
-}
+  TreeIterator(): Node() {
+  }
+  TreeIterator(const TreeIterator &it): Node(it.Node) {
+  }
+  ~TreeIterator() {
+  }
+  TreeIterator &operator=(const _Self &it) {
+    Node = it.Node;
+    return *this;
+  }
+  explicit TreeIterator(Node_ptr x): Node(x) {
+  };
+  reference operator*() const {
+    return Node->data;
+  }
+  pointer operator->() const {
+    return &Node->data;
+  }
+  _Self &operator++() {
+    increment();
+    return *this;
+  }
+  _Self operator++(int) {
+    _Self tmp = *this;
+    increment();
+    return tmp;
+  }
+  _Self &operator--() {
+    decrement();
+    return *this;
+  }
+  _Self operator--(int) {
+    _Self tmp = *this;
+    decrement();
+    return tmp;
+  }
+  bool operator==(const _Self &it) const {
+    return Node == it.Node;
+  }
+  bool operator!=(const _Self &it) const {
+    return Node != it.Node;
+  }
+ protected:
+  void increment() {
+    if (Node->right != NULL) {
+      Node = Node->right;
+      while (Node->left != NULL) {
+        Node = Node->left;
+      }
+    }
+    else {
+      Node_ptr y = Node->parent;
+      while (Node != y->right) {
+        Node = y;
+        y = y->parent;
+      }
+      if (Node->right != y) {
+        Node = y;
+      }
+    }
+  }
+  void decrement() {
+    if (Node->color == red && Node->parent->parent == Node) {
+      Node = Node->parent;
+      while (Node->right != NULL) {
+        Node = Node->right;
+      }
+    }
+    else if (Node->left != NULL) {
+      Node_ptr y  = Node->left;
+      while (y->right != NULL) {
+        y = y->right;
+      }
+      Node = y;
+    }
+    else {
+      Node_ptr y = Node->parent;
+      while (Node == y->left) {
+        Node = y;
+        y = y->parent;
+      }
+      Node = y;
+    }
+  }
+};
 
 template<typename Type>
 class ConstTreeIterator {
  public:
   typedef ConstTreeIterator<Type> _Self;
-  typedef const RB_tree_node_base *Base_Node_ptr;
-  typedef const RB_tree_node<Type> *Node_ptr
+  typedef const RB_tree_node<Type> *Node_ptr;
   typedef std::bidirectional_iterator_tag iterator_category;
   typedef Type value_type;
   typedef std::ptrdiff_t difference_type;
   typedef Type &reference;
   typedef Type *pointer;
 
-  Base_Node_ptr Node;
+  Node_ptr Node;
 
-  ConstTreeIterator();
-  ConstTreeIterator(const TreeIterator &it);
-  ~ConstTreeIterator();
-  ConstTreeIterator &operator=(const _Self &it);
-  explicit TreeIterator(Base_Node_ptr x);
-  reference operator*() const;
-  pointer operator->() const;
-  _Self &operator++();
-  _Self operator++(int);
-  _Self &operator--();
-  _Self operator--(int);
-  bool operator==(const _Self &it) const;
-  bool operator!=(const _Self &it) const;
-
-}
+  ConstTreeIterator(): Node() {
+  }
+  ConstTreeIterator(const TreeIterator<Type> &it): Node(it.Node) {
+  }
+  ~ConstTreeIterator() {
+  }
+  ConstTreeIterator &operator=(const _Self &it) {
+    Node = it.Node;
+    return *this;
+  }
+  explicit ConstTreeIterator(Node_ptr x): Node(x) {
+  }
+  reference operator*() const {
+    return Node->data;
+  }
+  pointer operator->() const {
+    return &Node->data;
+  }
+  _Self &operator++() {
+    increment();
+    return *this;
+  }
+  _Self operator++(int) {
+    _Self tmp = *this;
+    increment();
+    return tmp;
+  }
+  _Self &operator--() {
+    decrement();
+    return *this;
+  }
+  _Self operator--(int) {
+    _Self tmp = *this;
+    decrement();
+    return tmp;
+  }
+  bool operator==(const _Self &it) const {
+    return Node == it.Node;
+  }
+  bool operator!=(const _Self &it) const {
+    return Node != it.Node;
+  }
+ protected:
+  void increment() {
+    if (Node->right != NULL) {
+      Node = Node->right;
+      while (Node->left != NULL) {
+        Node = Node->left;
+      }
+    }
+    else {
+      Node_ptr y = Node->parent;
+      while (Node != y->right) {
+        Node = y;
+        y = y->parent;
+      }
+      if (Node->right != y) {
+        Node = y;
+      }
+    }
+  }
+  void decrement() {
+    if (Node->color == red && Node->parent->parent == Node) {
+      Node = Node->parent;
+      while (Node->right != NULL) {
+        Node = Node->right;
+      }
+    }
+    else if (Node->left != NULL) {
+      Node_ptr y  = Node->left;
+      while (y->right != NULL) {
+        y = y->right;
+      }
+      Node = y;
+    }
+    else {
+      Node_ptr y = Node->parent;
+      while (Node == y->left) {
+        Node = y;
+        y = y->parent;
+      }
+      Node = y;
+    }
+  }
+};
 
 template<typename T>
 inline bool operator==(const TreeIterator<T> &lhs, const ConstTreeIterator<T> &rhs) {
