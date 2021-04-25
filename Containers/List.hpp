@@ -37,7 +37,7 @@ class List {
   List_basic_node node_;
 
   List_node<T> *create_node(const value_type &x) {
-    List_node<T> *ptr = node_allocator_.allocate(1);
+    _Node_pointer ptr = node_allocator_.allocate(1);
     allocator_.construct(&(ptr->data), x);
     ++size_;
     return ptr;
