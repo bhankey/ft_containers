@@ -12,6 +12,8 @@
 
 namespace ft {
 
+// Inspire by gcc libstdc++ implementation and "Introduction to algorithms" H. Cormen
+
 template<typename Key, typename MappedType, typename Value, typename Compare = std::less<Key>, typename Allocator = std::allocator<Value> >
 class RBTree {
  protected:
@@ -39,8 +41,7 @@ class RBTree {
   Allocator allocator_;
   size_type size_;
 
-  Node_ptr root_;
-  RB_tree_node<Value> header_;
+  Node_ptr header_;
 
   Node_ptr create_node(const Value &value) {
     Node_ptr ptr = node_allocator_.allocate(1);
@@ -56,29 +57,49 @@ class RBTree {
     node_allocator_.deallocate(node, 1);
     --size_;
   }
+  Node_ptr &get_header() {
+    return header_;
+  };
+
+  Node_ptr &get_root() {
+    return header_->parent;
+  }
+  Node_ptr &get_leftmost() {
+    return header_->left;
+  }
+  Node_ptr &get_rightmost() {
+    return header_->right;
+  }
+  void empty_init_tree() {
+    header_ = node_allocator_.allocate(1);
+    header_->color = red;
+    get_root() = NULL;
+    get_leftmost() = header_;
+    get_rightmost() = header_;
+  }
+
 
  public:
-  RBTree(): compare_(), node_allocator_(), allocator_(), size_(0), root_(NULL) {
-    header_.color = black;
+  RBTree(): compare_(), node_allocator_(), allocator_(), size_(0) {
+    empty_init_tree();
   }
-  explicit RBTree(const Compare &comp, const Allocator& alloc = Allocator()): compare_(comp), node_allocator_(), allocator_(alloc), size_(0),  root_(NULL) {
-    header_.color = black;
+  explicit RBTree(const Compare &comp, const Allocator& alloc = Allocator()): compare_(comp), node_allocator_(), allocator_(alloc), size_(0) {
+    empty_init_tree();
   }
   template<typename InputIt>
-  RBTree(InputIt first, InputIt last, const Compare& comp = Compare(), const Allocator  &allocator = Allocator()): compare_(comp), node_allocator_(), allocator_(allocator), size_(0), root_(NULL) {
-    header_.color = black;
+  RBTree(InputIt first, InputIt last, const Compare& comp = Compare(), const Allocator  &allocator = Allocator()): compare_(comp), node_allocator_(), allocator_(allocator), size_(0) {
+    empty_init_tree();
     insert_unique(first, last);
   }
   RBTree(const RBTree &other): compare_(other.compare_), node_allocator_(other.node_allocator_), allocator_(other.allocator_) {
-    if (other.root_ == NULL) {
-      header_.color = black;
-    }
-    else {
-      operator=(other);
-    }
+
+
+
+
   }
   ~RBTree() {
     clear();
+    node_allocator_.deallocate(header_, 1);
   }
   RBTree &operator=(const RBTree &other) {
     if (this != &other) {
@@ -101,15 +122,33 @@ class RBTree {
 
   // Modifiers
   void clear() {
-    remove_subtree(root_);
-    root_ = NULL;
+    remove_subtree(header_->parent);
+    header_->parent = NULL;
+    header_->left = header_;
+    header_->right = header_;
   }
 
   std::pair<iterator, bool> insert_unique(const Value &value) {
-    // TODO normal !!!
-    Node_ptr ptr = create_node(value);
-    insert_node(ptr);
-    return std::pair<iterator, bool>();
+    Node_ptr  y = get_header();
+    Node_ptr x = get_root();
+    bool comp = true;
+    while (x != 0) {
+      y = x;
+      comp = compare_(value.first, x->data.first);
+      x = comp ? x->left : x->right;
+    }
+    iterator j = iterator(y);
+    if (comp) {
+      if (j == begin()) {
+        return std::pair<iterator, bool>(insert_node(x, y, value), true) ;
+      }
+      else
+        --j;
+    }
+    if (compare_(j.Node->data.first, value.first)) {
+      return std::pair<iterator, bool>(insert_node(x, y, value), true);
+    }
+    return std::pair<iterator, bool>(j, false);
   }
   iterator insert_unique(iterator hint, const Value *value) {
     static_cast<void>(hint);
@@ -124,9 +163,11 @@ class RBTree {
   }
 
   void erase(iterator pos) {
-    Node_ptr *ptr = pos.Node;
-    delete_node(ptr);
+    Node_ptr ptr = pos.Node;
+    ptr = rebalance_for_erase(ptr);
     destroy_node(ptr);
+    get_rightmost() = maximum(get_root());
+    get_leftmost() = minimum(get_root());
   }
   void erase(iterator first, iterator last) {
     while (first != last) {
@@ -149,7 +190,6 @@ class RBTree {
     std::swap(node_allocator_, other.node_allocator_);
     std::swap(allocator_, other.allocator_);
     std::swap(size_, other.size_);
-    std::swap(root_, other.root_);
     std::swap(header_, other.header_);
   }
 
@@ -170,17 +210,16 @@ class RBTree {
 
   // Iterators
   iterator begin() {
-    Node_ptr tmp = minimum(root_);
-   return iterator(tmp);
+   return iterator(get_leftmost());
   }
   const_iterator begin() const {
-   return const_iterator(minimum(root_));
+   return const_iterator(get_leftmost());
   }
   iterator end() {
-   return iterator(&header_);
+   return iterator(header_);
   }
   const_iterator end() const {
-    return const_iterator(&header_);
+    return const_iterator(header_);
   }
   reverse_iterator rbegin() {
     return reverse_iterator(end());
@@ -221,8 +260,8 @@ class RBTree {
       y->left->parent = x;
     }
     y->parent = x->parent;
-    if (x->parent == NULL) {
-      root_ = y;
+    if (x == get_root()) {
+      get_root() = y;
     }
     else if (x == x->parent->left) {
       x->parent->left = y;
@@ -240,8 +279,8 @@ class RBTree {
       y->right->parent = x;
     }
     y->parent = x->parent;
-    if (x->parent == NULL) {
-      root_ = y;
+    if (x == get_root()) {
+      get_root() = y;
     }
     else if (x == x->parent->right) {
       x->parent->right = y;
@@ -252,36 +291,33 @@ class RBTree {
     y->right = x;
     x->parent = y;
   }
-  void insert_node(Node_ptr z) {
-    Node_ptr y = &header_;
-    Node_ptr x = root_;
-    while (x != NULL) {
-      y = x;
-      if (compare_(z->data.first, x->data.first)) {
-        x = x->left;
-      }
-      else {
-        x = x->right;
-      }
-    }
-    z->parent = y;
-    if (y == NULL || y == &header_) {
-      root_ = z;
-      root_->parent = &header_;
-      header_.parent = root_;
-    }
-    else if (compare_(z->data.first, y->data.first)) {
+  iterator insert_node(Node_ptr x, Node_ptr y, const Value &value) {
+    Node_ptr z = create_node(value);
+    if (y == get_header() || x != 0 || compare_(value.first, y->data.first)) {
       y->left = z;
+      if (y == get_header()) {
+        get_root() = z;
+        get_rightmost() = z;
+      }
+      else if (y == get_leftmost()) {
+        get_leftmost() = z;
+      }
     }
     else {
       y->right = z;
+      if (y == get_rightmost()) {
+        get_rightmost() = z;
+      }
     }
+    z->parent = y;
     z->left = NULL;
     z->right = NULL;
     insert_fixup(z);
+    return (iterator(z));
   }
   void insert_fixup(Node_ptr z) {
-    while (z->parent->color == red) {
+    z->color = red;
+    while (z != get_root() && z->parent->color == red) {
       if (z->parent == z->parent->parent->left) {
         Node_ptr y = z->parent->parent->right;
         if (y->color == red) {
@@ -319,114 +355,258 @@ class RBTree {
         }
       }
     }
-    root_->color = black;
+    get_root()->color = black;
   }
-  void transplant(Node_ptr u, Node_ptr v) {
-    if (u->parent != NULL) {
-      root_ = v;
-    }
-    else if (u == u->parent->left) {
-      u->parent->left = v;
-    }
-    else {
-      u->parent->right = v;
-    }
-    if (v != NULL) {
-      v->parent = u->parent;
-    }
-  }
-  void delete_node(Node_ptr z) {
+  Node_ptr rebalance_for_erase(Node_ptr z) {
+    Node_ptr &root = get_root();
+    Node_ptr &left_most = get_leftmost();
+    Node_ptr &right_most = get_rightmost();
     Node_ptr y = z;
-    Node_ptr x;
-    enum RB_tree_color y_original_color = y->color;
-    if (z->left == NULL) {
-      x = z->right;
-      transplant(z, z->right);
-    }
-    else if (z->right == NULL) {
-      x = z->left;
-      transplant(z, z->left);
+    Node_ptr x = NULL;
+    Node_ptr x_parent = NULL;
+    if (y->left == NULL) {
+      x = y->right;
     }
     else {
-      y == minimum(z->right);
-      y_original_color = y->color;
-      x = y->right;
-      if (y->parent == z) {
-        x->parent = y;
+      if (y->right == NULL) {
+        x = y->left;
       }
       else {
-        transplant(y, y->right);
-        y->right = z->right;
-        y->right->parent = y;
+        y = y->right;
+        while (y->left != NULL) {
+          y = y->left;
+        }
+        x = y->right;
       }
-      transplant(z, y);
+    }
+    if (y != z) {
+      z->left->parent = y;
       y->left = z->left;
-      y->left->parent = y;
-      y->color = z->color;
-    }
-    if (y_original_color == black) {
-      delete_node_fixup(x);
-    }
-  }
-  void delete_node_fixup(Node_ptr x) {
-    while (x != root_ && x->color == black) {
-      if (x == x->parent->left) {
-        Node_ptr w = x->parent->right;
-        if (w->color == red) {
-          w->color = black;
-          x->parent->color = red;
-          left_rotate(x->parent);
-          w = x->parent->right;
+      if (y != z->right) {
+        x_parent = y->parent;
+        if (x) {
+          x->parent = y->parent;
         }
-        if (w->left->color == black && w->right->color == black) {
-          w->color = red;
-          x = x->parent;
-        }
-        else {
-          if (w->right->color == black) {
-            w->left->color = black;
-            w->color = red;
-            right_rotate(w);
-            w = x->parent->right;
-          }
-          w->color = x->parent->color;
-          x->parent->color = black;
-          w->right->color = black;
-          left_rotate(x->parent);
-          x = root_;
-        }
+        y->parent->left = x;
+        y->right = z->right;
+        z->right->parent = y;
       }
       else {
-        Node_ptr w = x->parent->left;
-        if (w->color == red) {
-          w->color = black;
-          x->parent->color = red;
-          right_rotate(x->parent);
-          w = x->parent->left;
-        }
-        if (w->right->color == black && w->left->color == black) {
-          w->color = red;
-          x = x->parent;
+        x_parent = y;
+      }
+      if (root == z) {
+        root = y;
+      }
+      else if (x->parent->left == z) {
+        z->parent->left = y;
+      }
+      else {
+        z->parent->right = y;
+      }
+      y->parent = z->parent;
+      std::swap(y->color, z->color);
+      y = z;
+    }
+    else {
+      x_parent = y->parent;
+      if (x) {
+        x->parent = y->parent;
+      }
+      if (root == z) {
+        root = x;
+      }
+      else {
+        if (z->parent->left == z) {
+          z->parent->left = x;
         }
         else {
-          if (w->left->color == black) {
-            w->right->color = black;
-            w->color = red;
-            left_rotate(w);
-            w = x->parent->left;
-          }
-          w->color = x->parent->color;
-          x->parent->color = black;
-          w->left->color = black;
-          right_rotate(x->parent);
-          x = root_;
+          z->parent->right = x;
+        }
+      }
+      if (left_most == z) {
+        if (z->right == NULL) {
+          left_most = z->parent;
+        }
+        else {
+          left_most = minimum(x);
+        }
+      }
+      if (right_most == z) {
+        if (z->left == NULL) {
+          right_most = z->parent;
+        }
+        else {
+          right_most = maximum(x);
         }
       }
     }
-    x->color = black;
+    if (y->color != red) {
+      while (x != root && (x == NULL || x->color == black)) {
+        if (x == x_parent->left) {
+          Node_ptr  w = x_parent->right;
+          if (w->color == red) {
+            w->color = black;
+            x_parent->color = red;
+            left_rotate(x_parent);
+            w = x_parent->right;
+          }
+          if ((w->left == NULL || w->left->color == black) && (w->right == NULL || w->right->color == black)) {
+            w->color = red;
+            x = x_parent;
+            x_parent = x_parent->parent;
+          }
+          else {
+            if (w->right == NULL || w->right->color == black) {
+              if (w->left) { // TODO fix all this condition to ==
+                w->left->color = black;
+              }
+              w->color = red;
+              right_rotate(w);
+              w = x_parent->right;
+            }
+            w->color = x_parent->color;
+            x_parent->color = black;
+            if (w->right) {
+              w->right->color = black;
+            }
+            left_rotate(x_parent);
+            break;
+          }
+        }
+        else {
+          Node_ptr w = x_parent->left;
+          if (w->color == red) {
+            w->color = black;
+            x_parent->color = red;
+            right_rotate(x_parent);
+            w = x_parent->left;
+          }
+          if ((w->right == NULL || w->right->color == black) && (w->left == NULL || w->left->color == black)) {
+            w->color = red;
+            x = x_parent;
+            x_parent = x_parent->parent;
+          }
+          else {
+            if (w->left == NULL || w->left->color == black) {
+              if (w->right) {
+                w->right->color = black;
+              }
+              w->color = red;
+              left_rotate(w);
+              w = x_parent->left;
+            }
+            w->color = x->parent->color;
+            x->parent->color = black;
+            if (w->left) {
+              w->left->color = black;
+            }
+            right_rotate(x_parent);
+            break;
+          }
+        }
+      }
+      if (x) {
+        x->color = black;
+      }
+    }
+    return y;
   }
+
+//  void delete_node(Node_ptr z) {
+//    Node_ptr y = z;
+//    Node_ptr x;
+//    enum RB_tree_color y_original_color = y->color;
+//    if (z->left == NULL) {
+//      x = z->right;
+//      transplant(z, z->right);
+//    }
+//    else if (z->right == NULL) {
+//      x = z->left;
+//      transplant(z, z->left);
+//    }
+//    else {
+//      y == minimum(z->right);
+//      y_original_color = y->color;
+//      x = y->right;
+//      if (y->parent == z) {
+//        x->parent = y;
+//      }
+//      else {
+//        transplant(y, y->right);
+//        y->right = z->right;
+//        y->right->parent = y;
+//      }
+//      transplant(z, y);
+//      y->left = z->left;
+//      y->left->parent = y;
+//      y->color = z->color;
+//    }
+//    if (y_original_color == black) {
+//      delete_node_fixup(x);
+//    }
+//  }
+//  void delete_node_fixup(Node_ptr x) {
+//    if (x == NULL) {
+//      return;;
+//    }
+//    while (x != get_root() && x->color == black) {
+//      if (x == x->parent->left) {
+//        Node_ptr w = x->parent->right;
+//        if (w->color == red) {
+//          w->color = black;
+//          x->parent->color = red;
+//          left_rotate(x->parent);
+//          w = x->parent->right;
+//        }
+//        if (w->left->color == black && w->right->color == black) {
+//          w->color = red;
+//          x = x->parent;
+//        }
+//        else {
+//          if (w->right->color == black) {
+//            w->left->color = black;
+//            w->color = red;
+//            right_rotate(w);
+//            w = x->parent->right;
+//          }
+//          w->color = x->parent->color;
+//          x->parent->color = black;
+//          w->right->color = black;
+//          left_rotate(x->parent);
+//          x = get_root();
+//        }
+//      }
+//      else {
+//        Node_ptr w = x->parent->left;
+//        if (w->color == red) {
+//          w->color = black;
+//          x->parent->color = red;
+//          right_rotate(x->parent);
+//          w = x->parent->left;
+//        }
+//        if (w->right->color == black && w->left->color == black) {
+//          w->color = red;
+//          x = x->parent;
+//        }
+//        else {
+//          if (w->left->color == black) {
+//            w->right->color = black;
+//            w->color = red;
+//            left_rotate(w);
+//            w = x->parent->left;
+//          }
+//          w->color = x->parent->color;
+//          x->parent->color = black;
+//          w->left->color = black;
+//          right_rotate(x->parent);
+//          x = get_root();
+//        }
+//      }
+//    }
+//    x->color = black;
+//  }
   Node_ptr find_node(Key key) {
-    Node_ptr node = root_;
+    Node_ptr node = get_root();
     while (node != NULL) {
       if (node->data.first == key) {
         return node;
@@ -442,7 +622,7 @@ class RBTree {
     }
     return NULL;
   }
-  void remove_subtree(Node_ptr node) {
+  void remove_subtree(Node_ptr node) { // Without balancing
     if (node != NULL) {
       remove_subtree(node->left);
       remove_subtree(node->right);
@@ -459,7 +639,7 @@ class RBTree {
     }
   }
   void inorder() {
-    inorder_f(root_);
+    inorder_f(get_root());
   }
 };
 }
