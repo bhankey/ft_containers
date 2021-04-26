@@ -19,7 +19,7 @@ class RBTree {
  protected:
   typedef RB_tree_node<Value> *Node_ptr;
   typedef const RB_tree_node<Value> Const_node_ptr;
-  typedef typename Allocator::template rebind<RB_tree_node<Value> >::other Node_allocator; // TODO May be problem cus of typedef
+  typedef typename Allocator::template rebind<RB_tree_node<Value> >::other Node_allocator;
  public:
   typedef Key key_type;
   typedef MappedType mapped_type;
@@ -134,7 +134,12 @@ class RBTree {
     while (x != 0) {
       y = x;
       comp = compare_(value.first, x->data.first); // TODO change to if
-      x = comp ? x->left : x->right;
+      if (comp) {
+        x = x->left;
+      }
+      else {
+        x = x->right;
+      }
     }
     iterator j = iterator(y);
     if (comp) {
@@ -154,13 +159,18 @@ class RBTree {
     Node_ptr x = get_root();
     while (x != 0) {
       y = x;
-      x = compare_(value.first, x->data.first) ? x->left : x->right; // TODO change to if
+      if (compare_(value.first, x->data.first)) {
+        x = x->left;
+      }
+      else {
+        x = x->right;
+      }
     }
     return insert_node(x, y, value);
   }
   void erase(iterator pos) {
     Node_ptr ptr = pos.Node;
-    ptr = rebalance_for_erase(ptr);
+    ptr = delete_node(ptr);
     destroy_node(ptr);
   }
   void erase(iterator first, iterator last) {
@@ -170,14 +180,10 @@ class RBTree {
     }
   }
   size_type erase(const key_type &key) {
-    Node_ptr ptr = find_node(key);
-    if (ptr == NULL) {
-      return 0;
-    }
-    else {
-      erase(iterator(ptr));
-      return 1;
-    }
+    std::pair<iterator, iterator> range = equal_range(key);
+    size_type  range_size = distance(range.first, range.last);
+    erase(range.first, range.last);
+    return range_size;
   }
   void swap(RBTree &other) {
     std::swap(compare_, other.compare_);
@@ -188,25 +194,90 @@ class RBTree {
   }
 
   // Lookup
-  size_type count(const Key &key) const { // TODO Change to normal version
-    size_type i = 0;
-    const_iterator it = begin();
-    while (it != end()) {
-      if (it->first == key) { // TODO use comp function
-        ++i;
-      }
-      ++it;
-    }
-    return i;
+  size_type count(const Key &key) const {
+    std::pair<iterator, iterator> range = equal_range(key);
+    return distance(range.first, range.second);
   }
-  iterator find(const Key &key);
-  const_iterator find(const Key &key) const;
-  std::pair<iterator,iterator> equal_range( const Key& key );
-  std::pair<const_iterator,const_iterator> equal_range( const Key& key ) const;
-  iterator lower_bound( const Key& key );
-  const_iterator lower_bound( const Key& key ) const;
-  iterator upper_bound( const Key& key );
-  const_iterator upper_bound( const Key& key ) const;
+  iterator find(const Key &key) {
+    iterator res = lower_bound(key);
+    if (compare_(key, res.Node->data.first)) {
+      return end();
+    }
+    else {
+      return res;
+    }
+  }
+  const_iterator find(const Key &key) const {
+    const_iterator res = lower_bound(key);
+    if (compare_(key, res.Node->data.first)) {
+      return end();
+    }
+    else {
+      return res;
+    }
+  }
+  std::pair<iterator,iterator> equal_range(const Key& key) {
+    return std::pair<iterator, iterator>(lower_bound(key), upper_bound(key));
+  }
+  std::pair<const_iterator,const_iterator> equal_range(const Key& key) const {
+    return std::pair<const_iterator, const_iterator>(lower_bound(key), upper_bound(key));
+  }
+  iterator lower_bound(const Key& key) {
+    Node_ptr x = get_root();
+    Node_ptr res = get_header();
+    while (x != NULL) {
+      if (!compare_(x->data.first, key)) { // TODO understand at all
+        res = x;
+        x = x->left;
+      }
+      else {
+        x = x->right;
+      }
+    }
+    return iterator(res);
+  }
+  const_iterator lower_bound( const Key& key ) const {
+    Node_ptr x = get_root();
+    Node_ptr res = get_header();
+    while (x != NULL) {
+      if (!compare_(x->data.first, key)) {
+        res = x;
+        x = x->left;
+      }
+      else {
+        x = x->right;
+      }
+    }
+    return const_iterator(res);
+  }
+  iterator upper_bound( const Key& key ) {
+    Node_ptr x = get_root();
+    Node_ptr res = get_header();
+    while (x != NULL) {
+      if (compare_(key, x->data.first)) {
+        res = x;
+        x = x->left;
+      }
+      else {
+        x = x->right;
+      }
+    }
+    return iterator(res);
+  }
+  iterator upper_bound( const Key& key ) const {
+    Node_ptr x = get_root();
+    Node_ptr res = get_header();
+    while (x != NULL) {
+      if (compare_(key, x->data.first)) {
+        res = x;
+        x = x->left;
+      }
+      else {
+        x = x->right;
+      }
+    }
+    return const_iterator(res);
+  }
 
   // Iterators
   iterator begin() {
@@ -357,7 +428,7 @@ class RBTree {
     }
     get_root()->color = black;
   }
-  Node_ptr rebalance_for_erase(Node_ptr z) {
+  Node_ptr delete_node(Node_ptr z) {
     Node_ptr &root = get_root();
     Node_ptr &left_most = get_leftmost();
     Node_ptr &right_most = get_rightmost();
@@ -507,69 +578,6 @@ class RBTree {
       x->color = black;
     }
   }
-
-
-//  void delete_node_fixup(Node_ptr x) {
-//    if (x == NULL) {
-//      return;;
-//    }
-//    while (x != get_root() && x->color == black) {
-//      if (x == x->parent->left) {
-//        Node_ptr w = x->parent->right;
-//        if (w->color == red) {
-//          w->color = black;
-//          x->parent->color = red;
-//          left_rotate(x->parent);
-//          w = x->parent->right;
-//        }
-//        if (w->left->color == black && w->right->color == black) {
-//          w->color = red;
-//          x = x->parent;
-//        }
-//        else {
-//          if (w->right->color == black) {
-//            w->left->color = black;
-//            w->color = red;
-//            right_rotate(w);
-//            w = x->parent->right;
-//          }
-//          w->color = x->parent->color;
-//          x->parent->color = black;
-//          w->right->color = black;
-//          left_rotate(x->parent);
-//          x = get_root();
-//        }
-//      }
-//      else {
-//        Node_ptr w = x->parent->left;
-//        if (w->color == red) {
-//          w->color = black;
-//          x->parent->color = red;
-//          right_rotate(x->parent);
-//          w = x->parent->left;
-//        }
-//        if (w->right->color == black && w->left->color == black) {
-//          w->color = red;
-//          x = x->parent;
-//        }
-//        else {
-//          if (w->left->color == black) {
-//            w->right->color = black;
-//            w->color = red;
-//            left_rotate(w);
-//            w = x->parent->left;
-//          }
-//          w->color = x->parent->color;
-//          x->parent->color = black;
-//          w->left->color = black;
-//          right_rotate(x->parent);
-//          x = get_root();
-//        }
-//      }
-//    }
-//    x->color = black;
-//  }
-
   Node_ptr find_node(Key key) {
     Node_ptr node = get_root();
     while (node != NULL) {
@@ -593,19 +601,8 @@ class RBTree {
       remove_subtree(node->right);
       destroy_node(node);
     }
-    node = NULL;
-  }
-
-  void inorder_f(Node_ptr x) {
-    if (x != NULL) {
-      inorder_f(x->left);
-      std::cout << static_cast<Node_ptr>(x)->data.first << " ";
-      inorder_f(x->right);
-    }
-  }
-  void inorder() {
-    inorder_f(get_root());
   }
 };
+
 }
 #endif //FT_CONTAINERS_CONTAINERS_RBTREE_HPP_

@@ -113,8 +113,8 @@ class ConstTreeIterator {
   typedef std::bidirectional_iterator_tag iterator_category;
   typedef Type value_type;
   typedef std::ptrdiff_t difference_type;
-  typedef Type &reference;
-  typedef Type *pointer;
+  typedef const Type &reference;
+  typedef const Type *pointer;
 
   Node_ptr Node;
 
@@ -170,7 +170,7 @@ class ConstTreeIterator {
     }
     else {
       Node_ptr y = Node->parent;
-      while (Node != y->right) {
+      while (Node == y->right) {
         Node = y;
         y = y->parent;
       }
