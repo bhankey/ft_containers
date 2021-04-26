@@ -311,7 +311,7 @@ class RBTree {
     return compare_;
   }
 //  ft::map::value_compare value_comp() const;
- public:
+ protected:
   Node_ptr minimum(Node_ptr x) {
     while (x->left != NULL) {
       x = x->left;
