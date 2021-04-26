@@ -74,7 +74,7 @@ class TreeIterator {
     }
     else {
       Node_ptr y = Node->parent;
-      while (Node != y->right) {
+      while (Node == y->right) {
         Node = y;
         y = y->parent;
       }
@@ -85,10 +85,7 @@ class TreeIterator {
   }
   void decrement() {
     if (Node->color == red && Node->parent->parent == Node) {
-      Node = Node->parent;
-      while (Node->right != NULL) {
-        Node = Node->right;
-      }
+      Node = Node->right;
     }
     else if (Node->left != NULL) {
       Node_ptr y  = Node->left;
@@ -184,10 +181,7 @@ class ConstTreeIterator {
   }
   void decrement() {
     if (Node->color == red && Node->parent->parent == Node) {
-      Node = Node->parent;
-      while (Node->right != NULL) {
-        Node = Node->right;
-      }
+      Node = Node->right;
     }
     else if (Node->left != NULL) {
       Node_ptr y  = Node->left;
