@@ -51,7 +51,7 @@ class Queue {
   void push(const value_type &value) {
     container_.push_back(value);
   }
-  void pop(const value_type &value) {
+  void pop() {
     container_.pop_front();
   }
 
