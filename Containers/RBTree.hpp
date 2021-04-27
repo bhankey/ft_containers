@@ -75,6 +75,7 @@ class RBTree {
     get_root() = NULL;
     get_leftmost() = header_;
     get_rightmost() = header_;
+    size_ = 0;
   }
 
 
