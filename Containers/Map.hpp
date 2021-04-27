@@ -41,28 +41,26 @@ class Map {
    protected:
     Compare comp;
    public:
-    value_compare(): comp() {
-    }
-    value_compare(const value_compare &other): comp(other.comp) {
-    }
     value_compare(Compare _comp): comp(_comp) {
     }
-    value_compare &operator=(const value_compare &other) {
-      comp = other.comp;
-      return *this;
-    }
-    ~value_compare() {
-    }
     bool operator()( const value_type& lhs, const value_type& rhs ) const {
-      return comp (lhs.first, rhs.first);
+      return comp(lhs.first, rhs.first);
     }
   };
 
   // Constructors and destructors
-  Map() {
+  Map(const Compare &comp = Compare(), const allocator_type &allocator = Allocator()): rb_tree_(comp, allocator), compare_(comp) {
   }
-  Map(const Map &other): rb_tree_(other.rb_tree_) {
+  template<typename InputIt>
+  Map(InputIt first, InputIt last, const Compare &comp = Compare(), const Allocator allocator = Allocator()): rb_tree_(comp, allocator), compare_(comp) {
+    while (first != last) {
+      rb_tree_.insert_unique(*first);
+      ++first;
+    }
   }
+  Map(const Map &other): rb_tree_(other.rb_tree_), compare_(other.compare_) {
+  }
+
   Map &operator=(const Map &other) {
     if (this != &other) {
       rb_tree_ = other.rb_tree_;
