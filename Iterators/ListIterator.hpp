@@ -96,6 +96,8 @@ class ConstListIterator {
   }
   explicit ConstListIterator(const List_basic_node *x): Node(x) {
   }
+  explicit ConstListIterator(const ListIterator<Type> &it): Node(it.Node) {
+  }
   reference  operator*() const {
     return static_cast<_Node *>(Node)->data;
   }
