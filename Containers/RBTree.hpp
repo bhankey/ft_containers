@@ -14,7 +14,7 @@ namespace ft {
 
 // Inspire by gcc libstdc++ implementation and "Introduction to algorithms" H. Cormen
 
-template<typename Key, typename MappedType, typename Value, typename Compare = std::less<Key>, typename Allocator = std::allocator<Value> >
+template<typename Key, typename Value, typename Compare = std::less<Key>, typename Allocator = std::allocator<Value> >
 class RBTree {
  protected:
   typedef RB_tree_node<Value> *Node_ptr;
@@ -22,7 +22,6 @@ class RBTree {
   typedef typename Allocator::template rebind<RB_tree_node<Value> >::other Node_allocator;
  public:
   typedef Key key_type;
-  typedef MappedType mapped_type;
   typedef Value value_type;
   typedef std::size_t size_type;
   typedef std::ptrdiff_t difference_type;
@@ -133,7 +132,7 @@ class RBTree {
     bool comp = true;
     while (x != 0) {
       y = x;
-      comp = compare_(value.first, x->data.first); // TODO change to if
+      comp = compare_(value.first, x->data.first);
       if (comp) {
         x = x->left;
       }
@@ -310,7 +309,6 @@ class RBTree {
   Compare &key_comp() const {
     return compare_;
   }
-//  ft::map::value_compare value_comp() const;
  protected:
   Node_ptr minimum(Node_ptr x) {
     while (x->left != NULL) {
@@ -527,7 +525,7 @@ class RBTree {
         }
         else {
           if (w->right == NULL || w->right->color == black) {
-            if (w->left != NULL) { // TODO fix all this condition to ==
+            if (w->left != NULL) {
               w->left->color = black;
             }
             w->color = red;
@@ -577,23 +575,6 @@ class RBTree {
     if (x != NULL) {
       x->color = black;
     }
-  }
-  Node_ptr find_node(Key key) {
-    Node_ptr node = get_root();
-    while (node != NULL) {
-      if (node->data.first == key) {
-        return node;
-      }
-      else {
-        if (compare_(key, node->data.first)) {
-          node = node->left;
-        }
-        else {
-          node = node->right;
-        }
-      }
-    }
-    return NULL;
   }
   void remove_subtree(Node_ptr node) { // Without balancing
     if (node != NULL) {
