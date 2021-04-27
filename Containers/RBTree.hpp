@@ -60,13 +60,13 @@ class RBTree {
     return header_;
   };
 
-  Node_ptr &get_root() {
+  Node_ptr &get_root() const {
     return header_->parent;
   }
-  Node_ptr &get_leftmost() {
+  Node_ptr &get_leftmost() const {
     return header_->left;
   }
-  Node_ptr &get_rightmost() {
+  Node_ptr &get_rightmost() const {
     return header_->right;
   }
   void empty_init_tree() {
@@ -85,16 +85,11 @@ class RBTree {
   explicit RBTree(const Compare &comp, const Allocator& alloc = Allocator()): compare_(comp), node_allocator_(), allocator_(alloc), size_(0) {
     empty_init_tree();
   }
-  template<typename InputIt>
-  RBTree(InputIt first, InputIt last, const Compare& comp = Compare(), const Allocator  &allocator = Allocator()): compare_(comp), node_allocator_(), allocator_(allocator), size_(0) {
-    empty_init_tree();
-    insert_unique(first, last);
-  }
   RBTree(const RBTree &other): compare_(other.compare_), node_allocator_(other.node_allocator_), allocator_(other.allocator_) {
-
-
-
-
+    empty_init_tree();
+    for (RBTree::const_iterator it = other.begin(); it != other.end(); ++it) {
+      insert_equal(*it);
+    }
   }
   ~RBTree() {
     clear();
@@ -103,7 +98,9 @@ class RBTree {
   RBTree &operator=(const RBTree &other) {
     if (this != &other) {
       clear();
-      insert_unique(other.begin(), other.end());
+      for (RBTree::const_iterator it = other.begin(); it != other.end(); ++it) {
+        insert_equal(*it);
+      }
     }
     return *this;
   }
@@ -215,13 +212,13 @@ class RBTree {
       return res;
     }
   }
-  std::pair<iterator,iterator> equal_range(const Key& key) {
+  std::pair<iterator,iterator> equal_range(const Key &key) {
     return std::pair<iterator, iterator>(lower_bound(key), upper_bound(key));
   }
-  std::pair<const_iterator,const_iterator> equal_range(const Key& key) const {
+  std::pair<const_iterator,const_iterator> equal_range(const Key &key) const {
     return std::pair<const_iterator, const_iterator>(lower_bound(key), upper_bound(key));
   }
-  iterator lower_bound(const Key& key) {
+  iterator lower_bound(const Key &key) {
     Node_ptr x = get_root();
     Node_ptr res = get_header();
     while (x != NULL) {
@@ -235,7 +232,7 @@ class RBTree {
     }
     return iterator(res);
   }
-  const_iterator lower_bound( const Key& key ) const {
+  const_iterator lower_bound(const Key &key) const {
     Node_ptr x = get_root();
     Node_ptr res = get_header();
     while (x != NULL) {
@@ -249,7 +246,7 @@ class RBTree {
     }
     return const_iterator(res);
   }
-  iterator upper_bound( const Key& key ) {
+  iterator upper_bound(const Key &key) {
     Node_ptr x = get_root();
     Node_ptr res = get_header();
     while (x != NULL) {
@@ -263,7 +260,7 @@ class RBTree {
     }
     return iterator(res);
   }
-  iterator upper_bound( const Key& key ) const {
+  iterator upper_bound(const Key &key) const {
     Node_ptr x = get_root();
     Node_ptr res = get_header();
     while (x != NULL) {
@@ -303,7 +300,6 @@ class RBTree {
   const_reverse_iterator rend() const {
     return const_reverse_iterator(begin());
   }
-
 
   // Observers
   Compare &key_comp() const {
@@ -389,7 +385,7 @@ class RBTree {
     while (z != get_root() && z->parent->color == red) {
       if (z->parent == z->parent->parent->left) {
         Node_ptr y = z->parent->parent->right;
-        if (y->color == red) {
+        if (y != NULL && y->color == red) {
           z->parent->color = black;
           y->color = black;
           z->parent->parent->color = red;
@@ -407,7 +403,7 @@ class RBTree {
       }
       else {
         Node_ptr y = z->parent->parent->left;
-        if (y->color == red) {
+        if (y != NULL && y->color == red) {
           z->parent->color = black;
           y->color = black;
           z->parent->parent->color = red;
@@ -576,7 +572,7 @@ class RBTree {
       x->color = black;
     }
   }
-  void remove_subtree(Node_ptr node) { // Without balancing
+  void remove_subtree(Node_ptr node) {
     if (node != NULL) {
       remove_subtree(node->left);
       remove_subtree(node->right);
