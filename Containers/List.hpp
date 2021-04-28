@@ -255,10 +255,10 @@ class List {
     }
   }
   void swap(List &other) {
-    std::swap(size_, other.size_);
-    std::swap(allocator_, other.allocator_);
-    std::swap(node_allocator_, other.node_allocator_);
-    std::swap(node_, other.node_);
+    ft::swap(size_, other.size_);
+    ft::swap(allocator_, other.allocator_);
+    ft::swap(node_allocator_, other.node_allocator_);
+    ft::swap(node_, other.node_);
   }
 
   // Operations
@@ -339,10 +339,10 @@ class List {
     List_basic_node *ptr = node_.next;
     while (ptr != &node_) {
       List_basic_node *tmp = ptr->next;
-      std::swap(ptr->next, ptr->prev);
+      ft::swap(ptr->next, ptr->prev);
       ptr = tmp;
     }
-    std::swap(node_.next, node_.prev);
+    ft::swap(node_.next, node_.prev);
   }
   void unique() {
     unique(std::equal_to<value_type>());
@@ -401,7 +401,7 @@ bool operator!=(const List<T,Alloc>& lhs, const List<T,Alloc>& rhs) {
 }
 template<class T, class Alloc>
 bool operator<(const List<T,Alloc>& lhs, const List<T,Alloc>& rhs) {
-  return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+  return ft::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
 }
 template<class T, class Alloc>
 bool operator<=(const List<T,Alloc>& lhs, const List<T,Alloc>& rhs) {

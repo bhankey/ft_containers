@@ -36,7 +36,7 @@ private:
   void moveToEnd(iterator start) {
     iterator pos = start;
     while (++pos != end()) {
-      std::swap(*start, *pos);
+      ft::swap(*start, *pos);
       start++;
     }
   }
@@ -288,10 +288,10 @@ public:
     }
   }
   void swap(Vector& other) {
-    std::swap(array_, other.array_);
-    std::swap(size_, other.size_);
-    std::swap(capacity_, other.capacity_);
-    std::swap(allocator_, other.allocator_);
+    ft::swap(array_, other.array_);
+    ft::swap(size_, other.size_);
+    ft::swap(capacity_, other.capacity_);
+    ft::swap(allocator_, other.allocator_);
   }
 };
 
@@ -317,7 +317,7 @@ bool operator!=(const ft::Vector<T,Alloc>& lhs, const ft::Vector<T,Alloc>& rhs) 
 }
 template<class T, class Alloc>
 bool operator<(const ft::Vector<T,Alloc>& lhs, const ft::Vector<T,Alloc>& rhs) {
-  return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+  return ft::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
 }
 template<class T, class Alloc>
 bool operator>(const ft::Vector<T,Alloc>& lhs, const ft::Vector<T,Alloc>& rhs) {

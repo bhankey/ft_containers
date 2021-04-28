@@ -132,8 +132,8 @@ class Map {
     rb_tree_.erase(key);
   }
   void swap(Map& other) {
-    std::swap(rb_tree_, other.rb_tree_);
-    std::swap(compare_, other.compare_);
+    ft::swap(rb_tree_, other.rb_tree_);
+    ft::swap(compare_, other.compare_);
   }
 
   // Lookup
@@ -195,7 +195,7 @@ bool operator!=(const Map<Key, T, Compare, Alloc> &lhs, const Map<Key, T, Compar
 }
 template<class Key, class T, class Compare, class Alloc>
 bool operator<(const Map<Key, T, Compare, Alloc> &lhs, const Map<Key, T, Compare, Alloc> &rhs) {
-  return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+  return ft::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
 }
 template<class Key, class T, class Compare, class Alloc>
 bool operator<=(const Map<Key, T, Compare, Alloc> &lhs, const Map<Key, T, Compare, Alloc> &rhs) {
