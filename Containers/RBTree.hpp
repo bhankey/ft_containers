@@ -14,7 +14,7 @@ namespace ft {
 
 // Inspire by gcc libstdc++ implementation and "Introduction to algorithms" H. Cormen
 
-template<typename Key, typename Value, typename Compare = std::less<Key>, typename Allocator = std::allocator<Value> >
+template<typename Key, typename Value, typename GetKey, typename Compare = std::less<Key>, typename Allocator = std::allocator<Value> >
 class RBTree {
  protected:
   typedef RB_tree_node<Value> *Node_ptr;
@@ -39,7 +39,7 @@ class RBTree {
   Node_allocator node_allocator_;
   Allocator allocator_;
   size_type size_;
-
+  GetKey get_key_;
   Node_ptr header_;
 
   Node_ptr create_node(const Value &value) {
@@ -80,13 +80,13 @@ class RBTree {
 
 
  public:
-  RBTree(): compare_(), node_allocator_(), allocator_(), size_(0) {
+  RBTree(): compare_(), node_allocator_(), allocator_(), size_(0), get_key_() {
     empty_init_tree();
   }
-  explicit RBTree(const Compare &comp, const Allocator& alloc = Allocator()): compare_(comp), node_allocator_(), allocator_(alloc), size_(0) {
+  explicit RBTree(const Compare &comp, const Allocator& alloc = Allocator()): compare_(comp), node_allocator_(), allocator_(alloc), size_(0), get_key_() {
     empty_init_tree();
   }
-  RBTree(const RBTree &other): compare_(other.compare_), node_allocator_(other.node_allocator_), allocator_(other.allocator_) {
+  RBTree(const RBTree &other): compare_(other.compare_), node_allocator_(other.node_allocator_), allocator_(other.allocator_), get_key_(other.get_key_) {
     empty_init_tree();
     for (RBTree::const_iterator it = other.begin(); it != other.end(); ++it) {
       insert_equal(*it);
@@ -99,6 +99,8 @@ class RBTree {
   RBTree &operator=(const RBTree &other) {
     if (this != &other) {
       clear();
+      compare_ = other.compare_;
+      get_key_ = other.get_key_;
       for (RBTree::const_iterator it = other.begin(); it != other.end(); ++it) {
         insert_equal(*it);
       }
@@ -130,7 +132,7 @@ class RBTree {
     bool comp = true;
     while (x != 0) {
       y = x;
-      comp = compare_(value.first, x->data.first);
+      comp = compare_(get_key_(value), get_key_(x->data));
       if (comp) {
         x = x->left;
       }
@@ -146,7 +148,7 @@ class RBTree {
       else
         --j;
     }
-    if (compare_(j.Node->data.first, value.first)) {
+    if (compare_(get_key_(j.Node->data), get_key_(value))) {
       return std::pair<iterator, bool>(insert_node(x, y, value), true);
     }
     return std::pair<iterator, bool>(j, false);
@@ -156,7 +158,7 @@ class RBTree {
     Node_ptr x = get_root();
     while (x != 0) {
       y = x;
-      if (compare_(value.first, x->data.first)) {
+      if (compare_(get_key_(value), get_key_(x->data))) {
         x = x->left;
       }
       else {
@@ -183,11 +185,11 @@ class RBTree {
     return range_size;
   }
   void swap(RBTree &other) {
-    std::swap(compare_, other.compare_);
-    std::swap(node_allocator_, other.node_allocator_);
-    std::swap(allocator_, other.allocator_);
-    std::swap(size_, other.size_);
-    std::swap(header_, other.header_);
+    ft::swap(compare_, other.compare_);
+    ft::swap(node_allocator_, other.node_allocator_);
+    ft::swap(allocator_, other.allocator_);
+    ft::swap(size_, other.size_);
+    ft::swap(header_, other.header_);
   }
 
   // Lookup
@@ -197,7 +199,7 @@ class RBTree {
   }
   iterator find(const Key &key) {
     iterator res = lower_bound(key);
-    if (compare_(key, res.Node->data.first)) {
+    if (compare_(key, get_key_(res.Node->data))) {
       return end();
     }
     else {
@@ -206,7 +208,7 @@ class RBTree {
   }
   const_iterator find(const Key &key) const {
     const_iterator res = lower_bound(key);
-    if (compare_(key, res.Node->data.first)) {
+    if (compare_(key, get_key_(res.Node->data))) {
       return end();
     }
     else {
@@ -223,7 +225,7 @@ class RBTree {
     Node_ptr x = get_root();
     Node_ptr res = get_header();
     while (x != NULL) {
-      if (!compare_(x->data.first, key)) { // TODO understand at all
+      if (!compare_(get_key_(x->data), key)) { // TODO understand at all
         res = x;
         x = x->left;
       }
@@ -237,7 +239,7 @@ class RBTree {
     Node_ptr x = get_root();
     Node_ptr res = get_header();
     while (x != NULL) {
-      if (!compare_(x->data.first, key)) {
+      if (!compare_(get_key_(x->data), key)) {
         res = x;
         x = x->left;
       }
@@ -251,7 +253,7 @@ class RBTree {
     Node_ptr x = get_root();
     Node_ptr res = get_header();
     while (x != NULL) {
-      if (compare_(key, x->data.first)) {
+      if (compare_(key, get_key_(x->data))) {
         res = x;
         x = x->left;
       }
@@ -265,7 +267,7 @@ class RBTree {
     Node_ptr x = get_root();
     Node_ptr res = get_header();
     while (x != NULL) {
-      if (compare_(key, x->data.first)) {
+      if (compare_(key, get_key_(x->data))) {
         res = x;
         x = x->left;
       }
@@ -359,7 +361,7 @@ class RBTree {
   }
   iterator insert_node(Node_ptr x, Node_ptr y, const Value &value) {
     Node_ptr z = create_node(value);
-    if (y == get_header() || x != 0 || compare_(value.first, y->data.first)) {
+    if (y == get_header() || x != 0 || compare_(get_key_(value), get_key_(y->data))) {
       y->left = z;
       if (y == get_header()) {
         get_root() = z;
@@ -465,7 +467,7 @@ class RBTree {
         z->parent->right = y;
       }
       y->parent = z->parent;
-      std::swap(y->color, z->color);
+      ft::swap(y->color, z->color);
       y = z;
     }
     else {

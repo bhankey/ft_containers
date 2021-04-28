@@ -26,11 +26,10 @@ class Map {
   typedef typename Allocator::const_pointer const_pointer;
 
  private:
-  typedef RBTree<Key, value_type, Compare, Allocator> data_structure;
+  typedef RBTree<Key, value_type, Select1st<value_type>, Compare, Allocator> data_structure;
   data_structure rb_tree_;
 
   Compare compare_;
-
  public:
   typedef typename data_structure::iterator iterator;
   typedef typename data_structure::const_iterator const_iterator;
