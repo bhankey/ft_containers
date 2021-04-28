@@ -47,8 +47,26 @@ bool lexicographical_compare(InputIt1 first1, InputIt1 last1, InputIt2 first2, I
   return (first1 == last1) && (first2 != last2);
 }
 
+template<typename Pair>
+struct Select1st {
+  typename Pair::first_type &operator()(Pair &x) const {
+    return x.first;
+  }
+  const typename Pair::first_type &operator()(const Pair &x) const {
+    return x.first;
+  }
+};
 
-// TODO change std::equal and std::lexicographical_compare to my ft:: version
+template<typename T>
+struct Identity {
+  T &operator()(T &x) const {
+    return x;
+  }
+  const T &operator()(const T &x) const {
+    return x;
+  }
+};
+// TODO change std::equal to my ft:: version
 }
 
 #endif //FT_CONTAINERS__UTILS_HPP_
