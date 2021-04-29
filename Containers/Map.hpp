@@ -176,7 +176,7 @@ bool operator==(const Map<Key, T, Compare, Alloc> &lhs, const Map<Key, T, Compar
   if (lhs.size() != rhs.size()) {
     return false;
   }
-  typename ft::Vector<T,Alloc>::const_iterator lit = lhs.begin(), rit = rhs.begin();
+  typename ft::Map<Key,T, Compare, Alloc>::const_iterator lit = lhs.begin(), rit = rhs.begin();
   for (; lit != lhs.end() && rit != rhs.end(); ++lit, ++rit) {
     if (*lit != *rit) {
       return false;

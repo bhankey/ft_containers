@@ -34,7 +34,7 @@ class List {
   size_type size_;
   allocator_type allocator_;
   Node_allocator_ node_allocator_;
-  List_basic_node node_;
+  List_basic_node *node_;
 
   List_node<T> *create_node(const value_type &x) {
     _Node_pointer ptr = node_allocator_.allocate(1);
@@ -60,31 +60,35 @@ class List {
 
   // Constructor and destructors
   List() : size_(0), allocator_(Allocator()), node_allocator_(), node_() {
-    node_.next = &node_;
-    node_.prev = &node_;
+    node_ = node_allocator_.allocate(1);
+    node_->next = node_;
+    node_->prev = node_;
   }
   explicit List(const Allocator &alloc) : size_(0), allocator_(alloc), node_allocator_(), node_() {
-    node_.next = &node_;
-    node_.prev = &node_;
+    node_ = node_allocator_.allocate(1);
+    node_->next = node_;
+    node_->prev = node_;
   }
   explicit List(size_type count, const T &value = T(), const Allocator &alloc = Allocator()) :
       size_(0), allocator_(alloc), node_allocator_(), node_() {
-    node_.next = &node_;
-    node_.prev = &node_;
-    List_basic_node *ptr = &node_;
+    node_ = node_allocator_.allocate(1);
+    node_->next = node_;
+    node_->prev = node_;
+    List_basic_node *ptr = node_;
     while (count) {
       List_basic_node *tmp = create_node(value);
       make_connection(ptr, tmp);
       ptr = ptr->next;
       --count;
     }
-    make_connection(ptr, &node_);
+    make_connection(ptr, node_);
   }
   template<typename InputIt>
   List(InputIt first, InputIt last, const Allocator &alloc = Allocator())
       : size_(0), allocator_(alloc), node_allocator_(), node_() {
-    node_.next = &node_;
-    node_.prev = &node_;
+    node_ = node_allocator_.allocate(1);
+    node_->next = node_;
+    node_->prev = node_;
     while (first != last) {
       push_back(*first);
       ++first;
@@ -92,14 +96,16 @@ class List {
   }
   List(const List &other) :
       size_(0), allocator_(other.allocator_), node_allocator_(other.node_allocator_), node_() {
-    node_.next = &node_;
-    node_.prev = &node_;
+    node_ = node_allocator_.allocate(1);
+    node_->next = node_;
+    node_->prev = node_;
     for (const_iterator it = other.begin(); it != other.end(); ++it) {
       push_back(*it);
     }
   }
   ~List() {
     clear();
+    node_allocator_.deallocate(static_cast<_Node_pointer>(node_), 1);
   }
   List &operator=(const List &other) {
     if (this != &other) {
@@ -133,30 +139,30 @@ class List {
 
   // Element access
   reference front() {
-    return static_cast<_Node_pointer>(node_.next)->data;
+    return static_cast<_Node_pointer>(node_->next)->data;
   }
   const_reference front() const {
-    return static_cast<_Node_pointer>(node_.next)->data;
+    return static_cast<_Node_pointer>(node_->next)->data;
   }
   reference back() {
-    return static_cast<_Node_pointer>(node_.prev)->data;
+    return static_cast<_Node_pointer>(node_->prev)->data;
   }
   const_reference back() const {
-    return static_cast<_Node_pointer>(node_.prev)->data;
+    return static_cast<_Node_pointer>(node_->prev)->data;
   }
 
   // Iterators
   iterator begin() {
-    return iterator(node_.next);
+    return iterator(node_->next);
   }
   const_iterator begin() const {
-    return const_iterator(node_.next);
+    return const_iterator(node_->next);
   }
   iterator end() {
-    return iterator(&node_);
+    return iterator(node_);
   }
   const_iterator end() const {
-    return const_iterator(&node_);
+    return const_iterator(node_);
   }
   reverse_iterator rbegin() {
     return reverse_iterator(end());
@@ -184,14 +190,14 @@ class List {
 
   // Modifiers
   void clear() {
-    List_basic_node *ptr = node_.next;
-    while (ptr != &node_) {
+    List_basic_node *ptr = node_->next;
+    while (ptr != node_) {
       List_basic_node *tmp = ptr->next;
       destroy_node(static_cast<_Node_pointer>(ptr));
       ptr = tmp;
     }
-    node_.next = &node_;
-    node_.prev = &node_;
+    node_->next = node_;
+    node_->prev = node_;
   }
   iterator insert(iterator pos, const T &value) {
     List_basic_node *new_node = create_node(value);
@@ -217,7 +223,7 @@ class List {
     List_basic_node *return_ptr = ptr->next;
     make_connection(ptr->prev, ptr->next);
     destroy_node(ptr);
-    return return_ptr;
+    return iterator(return_ptr);
   }
   iterator erase(iterator first, iterator last) {
     while (first != last) {
@@ -227,20 +233,20 @@ class List {
   }
   void push_back(const T &value) {
     List_basic_node *tmp = create_node(value);
-    make_connection(node_.prev, tmp, &node_);
+    make_connection(node_->prev, tmp, node_);
   }
   void pop_back() {
-    List_basic_node *tmp = node_.prev;
-    make_connection(tmp->prev, &node_);
+    List_basic_node *tmp = node_->prev;
+    make_connection(tmp->prev, node_);
     destroy_node(tmp);
   }
   void push_front(const T &value) {
     List_basic_node *tmp = create_node(value);
-    make_connection(&node_, tmp, node_.next);
+    make_connection(node_, tmp, node_->next);
   }
   void pop_front() {
-    List_basic_node *tmp = node_.next;
-    make_connection(&node_, tmp->next);
+    List_basic_node *tmp = node_->next;
+    make_connection(node_, tmp->next);
     destroy_node(tmp);
   }
   void resize(size_type count, T value = T()) {
@@ -268,9 +274,9 @@ class List {
   template<class Compare>
   void merge(List &other, Compare comp) {
     if (this != &other) {
-      List_basic_node *this_ptr = node_.next;
-      List_basic_node *other_ptr = other.node_.next;
-      while (this_ptr != &node_ && other_ptr != &other.node_) {
+      List_basic_node *this_ptr = node_->next;
+      List_basic_node *other_ptr = other.node_->next;
+      while (this_ptr != node_ && other_ptr != other.node_) {
         if (comp(static_cast<_Node_pointer>(this_ptr)->data,
                  static_cast<_Node_pointer>(other_ptr)->data)) {
           this_ptr = this_ptr->next;
@@ -280,14 +286,16 @@ class List {
           other_ptr = other_ptr->next;
           make_connection(this_ptr->prev, tmp, this_ptr);
           ++size_;
+          --other.size_;
         }
       }
-      while (other_ptr != &other.node_) {
+      while (other_ptr != other.node_) {
         make_connection(other_ptr->prev, other_ptr->next);
         List_basic_node *tmp = other_ptr;
         other_ptr = other_ptr->next;
         make_connection(this_ptr->prev, tmp, this_ptr);
         ++size_;
+        --other.size_;
       }
       other.clear();
     }
@@ -320,6 +328,7 @@ class List {
     for (iterator it = begin(); it != end(); ++it) {
       if (*it == value) {
         it = erase(it);
+        --it;
       } else {
         ++it;
       }
@@ -330,27 +339,28 @@ class List {
     for (iterator it = begin(); it != end(); ++it) {
       if (p(*it) == true) {
         it = erase(it);
+        --it;
       } else {
         ++it;
       }
     }
   }
   void reverse() {
-    List_basic_node *ptr = node_.next;
-    while (ptr != &node_) {
+    List_basic_node *ptr = node_->next;
+    while (ptr != node_) {
       List_basic_node *tmp = ptr->next;
       ft::swap(ptr->next, ptr->prev);
       ptr = tmp;
     }
-    ft::swap(node_.next, node_.prev);
+    ft::swap(node_->next, node_->prev);
   }
   void unique() {
     unique(std::equal_to<value_type>());
   }
   template<class BinaryPredicate>
   void unique(BinaryPredicate p) {
-    List_basic_node *start = node_.next;
-    while (start->next != &node_) {
+    List_basic_node *start = node_->next;
+    while (start->next != node_) {
       if (p(static_cast<_Node_pointer>(start)->data,
             static_cast<_Node_pointer>(start->next)->data)) {
         List_basic_node *tmp = start->next;
@@ -383,7 +393,7 @@ bool operator==(const List<T,Alloc>& lhs, const List<T,Alloc>& rhs) {
   if (lhs.size() != rhs.size()) {
     return false;
   }
-  typename ft::Vector<T,Alloc>::const_iterator lit = lhs.begin(), rit = rhs.begin();
+  typename ft::List<T,Alloc>::const_iterator lit = lhs.begin(), rit = rhs.begin();
   for (; lit != lhs.end() && rit != rhs.end(); ++lit, ++rit) {
     if (*lit != *rit) {
       return false;
