@@ -75,7 +75,7 @@ public:
       allocator_.construct(array_ + i, *first);
     }
   }
-  Vector(const Vector& other): allocator_(other.allocator_), size_(other.size_), capacity_(other.capacity_) {
+  Vector(const Vector& other): allocator_(other.allocator_), size_(other.size_), capacity_(other.size_) {
     array_ = allocator_.allocate(capacity_);
     for (size_type i = 0; i < size_; ++i) {
       allocator_.construct(array_ + i, *(other.array_ + i));
@@ -101,12 +101,30 @@ public:
   // Assign
   void assign(size_type count, const T& value) {
     clear();
-    insert(begin(), count, value);
+    size_ = count;
+    if (count > capacity_) {
+      reserve(count);
+    }
+    size_type i = 0;
+    while (count > 0) {
+      allocator_.construct(array_ + i, value);
+      ++i;
+      --count;
+    }
   }
   template<class InputIt>
   void assign(InputIt first, InputIt last) {
     clear();
-    insert(begin(), first, last);
+    size_ = ft::distance(first, last);
+    if (size_ > capacity_) {
+      reserve(size_);
+    }
+    size_type i = 0;
+    while (first != last) {
+      allocator_.construct(array_ + i, *first);
+      ++i;
+      ++first;
+    }
   }
 
   // Element access
@@ -203,7 +221,7 @@ public:
       if (size_ == 0) {
         reserve(1);
       } else {
-        reserve((capacity_ ) + 1);
+        reserve((capacity_ ) * 2);
       }
     }
     if (pos == end()) {
@@ -266,7 +284,7 @@ public:
       if (size_ == 0) {
         reserve(1);
       } else {
-        reserve((capacity_ * 1.5f) + 1);
+        reserve(capacity_ * 2);
       }
     }
     allocator_.construct(array_ + size_, value);
@@ -274,12 +292,15 @@ public:
   }
   void resize(size_type count, T value = T()) {
     if (count > capacity_) {
-      reserve(count);
+      size_type tmp_capacity = capacity_;
+      if (tmp_capacity * 2 < count) {
+        tmp_capacity = count;
+      }
+      reserve(tmp_capacity);
     }
     if (count > size_) {
-      while(count != size_) {
-        allocator_.construct(array_ + size_, value);
-        size_++;
+      while (count != size_) {
+        push_back(value);
       }
     } else if (count < size_) {
       erase(iterator(array_ + count), end());
