@@ -9,14 +9,6 @@
 #include "Vector.hpp"
 
 template<typename Container>
-void printNormal(const Container container) {
-  for (size_t i = 0; i < container.size(); ++i) {
-    std::cout << container[i] << " ";
-  }
-  std::cout << std::endl;
-}
-
-template<typename Container>
 void printIterator(const Container container) {
   typename Container::const_iterator it = container.begin();
   while (it != container.end()) {
@@ -37,6 +29,10 @@ void printByAlgorithmsReverse(const Container &c) {
   std::cout << std::endl;
 }
 
+template<typename Container>
+void TestCompare(Container &f, Container &s) {
+  std::cout << (f == s) << " " << (f != s) << " " << (f < s) << " " << (f <= s) << " " << (f > s) << " " << (f >= s) << std::endl;
+}
 
 
 #endif //FT_CONTAINERS_FUNCTIONSFORTEST_PRINT_HPP_

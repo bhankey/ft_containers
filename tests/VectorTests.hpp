@@ -16,8 +16,20 @@ void PrintVectorInfo(Vector vec) {
     std::cout << "back: " << vec.back() << " front: " << vec.front() << std::endl;
   }
 }
+
+template<typename Container>
+void printNormal(const Container container) {
+  for (size_t i = 0; i < container.size(); ++i) {
+    std::cout << container[i] << " ";
+  }
+  std::cout << std::endl;
+}
+
 template<typename Vector>
 void TestVector() {
+  std::cout << "Vector testing" << std::endl;
+  std::cout << "Testing constructors, operation '=' and assign" << std::endl;
+  Vector full(100, "full");
   {
     Vector vec;
     printNormal(vec);
@@ -27,6 +39,9 @@ void TestVector() {
     Vector vec(10, "5");
     printIterator(vec);
     PrintVectorInfo(vec);
+    const Vector vec1(vec);
+    printByAlgorithms(vec);
+    PrintVectorInfo(vec);
   }
   {
     Vector vec(11);
@@ -34,13 +49,18 @@ void TestVector() {
     PrintVectorInfo(vec);
   }
   {
-    std::list<typename Vector::value_type> l;
+    ft::List<typename Vector::value_type> l;
     l.push_back("pam");
     l.push_back("ram");
     l.push_back("lll");
     Vector vec(l.begin(), l.end());
     printByAlgorithms(vec);
     PrintVectorInfo(vec);
+    Vector vec1;
+    vec1.push_back("tmp");
+    vec1 = vec;
+    printByAlgorithms(vec1);
+    PrintVectorInfo(vec1);
   }
   {
     Vector toCopy(10);
@@ -50,7 +70,82 @@ void TestVector() {
     Vector vec(toCopy);
     printByAlgorithms(vec);
     PrintVectorInfo(vec);
+    Vector vec1;
+    vec1.assign(5, "l");
+    printByAlgorithms(vec);
+    PrintVectorInfo(vec1);
+    vec1.assign(toCopy.begin(), toCopy.end());
+    printByAlgorithms(vec);
+    PrintVectorInfo(vec);
   }
+  {
+    Vector vec;
+    Vector vec1;
+    vec = vec1;
+    PrintVectorInfo(vec);
+    PrintVectorInfo(vec1);
+  }
+  std::cout << "Testing some special cases of element access" << std::endl;
+  {
+    Vector vec;
+    try {
+      std::cout << vec.at(11) << std::endl;
+    }
+    catch (...) {
+      std::cout << "exception caught" << std::endl;
+    }
+    vec.push_back("aaa");
+    try {
+      std::cout << vec.at(0) << std::endl;
+    }
+    catch (...) {
+      std::cout << "exception caught" << std::endl;
+    }
+    printNormal(vec);
+    PrintVectorInfo(vec);
+    printNormal(full);
+  }
+  std::cout << "Test reserve" << std::endl;
+  {
+    Vector vec(100);
+    vec.reserve(1);
+    PrintVectorInfo(vec);
+    vec.reserve(1000);
+    PrintVectorInfo(vec);
+  }
+  std::cout << "Test some modifiers" << std::endl;
+  {
+    Vector vec;
+    vec.clear();
+    vec.insert(vec.begin(), "first");
+    PrintVectorInfo(vec);
+    printByAlgorithms(vec);
+    vec.clear();
+    vec.insert(vec.end(), "end");
+    PrintVectorInfo(vec);
+    printByAlgorithms(vec);
+    vec.pop_back();
+    PrintVectorInfo(vec);
+    vec.push_back("1");
+    PrintVectorInfo(vec);
+    vec.swap(full);
+    PrintVectorInfo(vec);
+    printByAlgorithms(vec);
+    PrintVectorInfo(full);
+    printByAlgorithms(full);
+    full.swap(vec);
+    PrintVectorInfo(vec);
+    printByAlgorithms(vec);
+    PrintVectorInfo(full);
+    printByAlgorithms(full);
+    vec.resize(0);
+    PrintVectorInfo(vec);
+    vec.resize(100);
+    TestCompare(vec, full);
+    PrintVectorInfo(vec);
+    printByAlgorithms(vec);
+  }
+  std::cout << "Complex test" << std::endl;
   {
     Vector vec;
     vec.insert(vec.begin(), 30, "lol");
@@ -59,7 +154,7 @@ void TestVector() {
     vec.insert(vec.begin() + 4, "pam");
     printByAlgorithms(vec);
     PrintVectorInfo(vec);
-    std::list<typename Vector::value_type> l;
+    ft::List<typename Vector::value_type> l;
     l.push_back("pam");
     l.push_back("ram");
     l.push_back("lll");
@@ -100,17 +195,15 @@ void TestVector() {
     printByAlgorithms(vec);
     PrintVectorInfo(vec);
     Vector vec1(vec);
-    std::cout << (vec == vec1) << std::endl;
-    std::cout << (vec < vec1) << std::endl;
-    std::cout << (vec > vec1) << std::endl;
+    TestCompare(vec, vec1);
     vec[1] = "5";
-    std::cout << (vec != vec1) << std::endl;
-    std::cout << (vec <= vec1) << std::endl;
-    std::cout << (vec >= vec1) << std::endl;
-
+    TestCompare(vec, vec1);
+    vec.resize(0);
+    TestCompare(vec, vec1);
+    vec1.resize(0);
+    TestCompare(vec, vec1);
   }
-
-
+  std::cout << "Test cases of Vector ended. Compare results with std" << std::endl;
 }
 
 #endif //FT_CONTAINERS_TESTS_VECTORTESTS_HPP_
