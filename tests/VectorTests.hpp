@@ -6,7 +6,6 @@
 #define FT_CONTAINERS_TESTS_VECTORTESTS_HPP_
 
 #include "print.hpp"
-#include <list>
 #include <algorithm>
 
 template<typename Vector>
