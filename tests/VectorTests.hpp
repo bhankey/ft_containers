@@ -6,10 +6,12 @@
 #define FT_CONTAINERS_TESTS_VECTORTESTS_HPP_
 
 #include "print.hpp"
+
+#include <list>
 #include <algorithm>
 
 template<typename Vector>
-void PrintVectorInfo(Vector vec) {
+void PrintVectorInfo(Vector &vec) {
   std::cout << "Vec size: " << vec.size() << " capacity: " << vec.capacity() << " max_size: " << vec.max_size() << std::endl;
   if (!vec.empty()) {
     std::cout << "back: " << vec.back() << " front: " << vec.front() << std::endl;
@@ -48,7 +50,7 @@ void TestVector() {
     PrintVectorInfo(vec);
   }
   {
-    ft::List<typename Vector::value_type> l;
+    std::list<typename Vector::value_type> l;
     l.push_back("pam");
     l.push_back("ram");
     l.push_back("lll");
@@ -153,7 +155,7 @@ void TestVector() {
     vec.insert(vec.begin() + 4, "pam");
     printByAlgorithms(vec);
     PrintVectorInfo(vec);
-    ft::List<typename Vector::value_type> l;
+    std::list<typename Vector::value_type> l;
     l.push_back("pam");
     l.push_back("ram");
     l.push_back("lll");
@@ -183,6 +185,7 @@ void TestVector() {
     vec.clear();
     printByAlgorithms(vec);
     PrintVectorInfo(vec);
+    std::cout << "test";
     vec.assign(20, "pam");
     printByAlgorithms(vec);
     PrintVectorInfo(vec);
