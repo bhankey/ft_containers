@@ -12,10 +12,8 @@
 #include "ListTests.hpp"
 
 int main() {
- // TestVector<ft::Vector<std::string> >();
- TestVector<std::vector<std::string> >();
- // TestList<ft::List<std::string> >();
- // TestList<std::list<std::string> >();
+ TestVector<ft::Vector<std::string> >();
+ TestList<ft::List<std::string> >();
 //  std::map<int, std::string> a;
 //  std::pair<int, std::string> b;
 //  b.first = 5;
