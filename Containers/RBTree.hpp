@@ -174,14 +174,13 @@ class RBTree {
   }
   void erase(iterator first, iterator last) {
     while (first != last) {
-      erase(first);
-      ++first;
+      erase(first++);
     }
   }
   size_type erase(const key_type &key) {
     std::pair<iterator, iterator> range = equal_range(key);
-    size_type  range_size = distance(range.first, range.last);
-    erase(range.first, range.last);
+    size_type  range_size = ft::distance(range.first, range.second);
+    erase(range.first, range.second);
     return range_size;
   }
   void swap(RBTree &other) {
@@ -194,8 +193,8 @@ class RBTree {
 
   // Lookup
   size_type count(const Key &key) const {
-    std::pair<iterator, iterator> range = equal_range(key);
-    return distance(range.first, range.second);
+    std::pair<const_iterator, const_iterator> range = equal_range(key);
+    return ft::distance(range.first, range.second);
   }
   iterator find(const Key &key) {
     iterator res = lower_bound(key);
@@ -237,7 +236,7 @@ class RBTree {
   }
   const_iterator lower_bound(const Key &key) const {
     Node_ptr x = get_root();
-    Node_ptr res = get_header();
+    Node_ptr res = header_;
     while (x != NULL) {
       if (!compare_(get_key_(x->data), key)) {
         res = x;
@@ -263,9 +262,9 @@ class RBTree {
     }
     return iterator(res);
   }
-  iterator upper_bound(const Key &key) const {
+  const_iterator upper_bound(const Key &key) const {
     Node_ptr x = get_root();
-    Node_ptr res = get_header();
+    Node_ptr res = header_;
     while (x != NULL) {
       if (compare_(key, get_key_(x->data))) {
         res = x;
@@ -431,6 +430,7 @@ class RBTree {
     Node_ptr &right_most = get_rightmost();
     Node_ptr y = z;
     Node_ptr x = NULL;
+    Node_ptr x_parent = NULL;
     if (y->left == NULL) {
       x = y->right;
     }
@@ -450,6 +450,7 @@ class RBTree {
       z->left->parent = y;
       y->left = z->left;
       if (y != z->right) {
+        x_parent = y->parent;
         if (x) {
           x->parent = y->parent;
         }
@@ -457,10 +458,13 @@ class RBTree {
         y->right = z->right;
         z->right->parent = y;
       }
+      else {
+        x_parent = y;
+      }
       if (root == z) {
         root = y;
       }
-      else if (x->parent->left == z) {
+      else if (z->parent->left == z) {
         z->parent->left = y;
       }
       else {
@@ -471,7 +475,8 @@ class RBTree {
       y = z;
     }
     else {
-      if (x) {
+      x_parent = y->parent;
+      if (x != NULL) {
         x->parent = y->parent;
       }
       if (root == z) {
@@ -503,77 +508,75 @@ class RBTree {
       }
     }
     if (y->color == black) {
-      delete_fixup(x);
-    }
-    return y;
-  }
-  void delete_fixup(Node_ptr x) {
-    Node_ptr &root = get_root();
-    while (x != root && (x == NULL || x->color == black)) {
-      if (x == x->parent->left) {
-        Node_ptr  w = x->parent->right;
-        if (w->color == red) {
-          w->color = black;
-          x->parent->color = red;
-          left_rotate(x->parent);
-          w = x->parent->right;
-        }
-        if ((w->left == NULL || w->left->color == black) && (w->right == NULL || w->right->color == black)) {
-          w->color = red;
-          x = x->parent->parent;
-        }
-        else {
-          if (w->right == NULL || w->right->color == black) {
-            if (w->left != NULL) {
-              w->left->color = black;
-            }
+      while (x != root && (x == NULL || x->color == black)) {
+        if (x == x_parent->left) {
+          Node_ptr  w = x_parent->right;
+          if (w->color == red) {
+            w->color = black;
+            x_parent->color = red;
+            left_rotate(x_parent);
+            w = x_parent->right;
+          }
+          if ((w->left == NULL || w->left->color == black) && (w->right == NULL || w->right->color == black)) {
             w->color = red;
-            right_rotate(w);
-            w = x->parent->right;
+            x = x_parent;
+            x_parent = x_parent->parent;
           }
-          w->color = x->parent->color;
-          x->parent->color = black;
-          if (w->right != NULL) {
-            w->right->color = black;
-          }
-          left_rotate(x->parent);
-          break;
-        }
-      }
-      else {
-        Node_ptr w = x->parent->left;
-        if (w->color == red) {
-          w->color = black;
-          x->parent->color = red;
-          right_rotate(x->parent);
-          w = x->parent->left;
-        }
-        if ((w->right == NULL || w->right->color == black) && (w->left == NULL || w->left->color == black)) {
-          w->color = red;
-          x = x->parent->parent;
-        }
-        else {
-          if (w->left == NULL || w->left->color == black) {
+          else {
+            if (w->right == NULL || w->right->color == black) {
+              if (w->left != NULL) {
+                w->left->color = black;
+              }
+              w->color = red;
+              right_rotate(w);
+              w = x_parent->right;
+            }
+            w->color = x_parent->color;
+            x_parent->color = black;
             if (w->right != NULL) {
               w->right->color = black;
             }
+            left_rotate(x_parent);
+            break;
+          }
+        }
+        else {
+          Node_ptr w = x_parent->left;
+          if (w->color == red) {
+            w->color = black;
+            x_parent->color = red;
+            right_rotate(x_parent);
+            w = x_parent->left;
+          }
+          if ((w->right == NULL || w->right->color == black) && (w->left == NULL || w->left->color == black)) {
             w->color = red;
-            left_rotate(w);
-            w = x->parent->left;
+            x = x_parent;
+            x_parent = x_parent->parent;
           }
-          w->color = x->parent->color;
-          x->parent->color = black;
-          if (w->left != NULL) {
-            w->left->color = black;
+          else {
+            if (w->left == NULL || w->left->color == black) {
+              if (w->right != NULL) {
+                w->right->color = black;
+              }
+              w->color = red;
+              left_rotate(w);
+              w = x_parent->left;
+            }
+            w->color = x->parent->color;
+            x->parent->color = black;
+            if (w->left != NULL) {
+              w->left->color = black;
+            }
+            right_rotate(x_parent);
+            break;
           }
-          right_rotate(x->parent);
-          break;
         }
       }
+      if (x != NULL) {
+        x->color = black;
+      }
     }
-    if (x != NULL) {
-      x->color = black;
-    }
+    return y;
   }
   void remove_subtree(Node_ptr node) {
     if (node != NULL) {

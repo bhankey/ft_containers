@@ -130,6 +130,7 @@ class Map {
   void insert(InputIt first, InputIt last) {
     while (first != last) {
       rb_tree_.insert_unique(*first);
+      ++first;
     }
   }
   void erase(iterator pos) {
