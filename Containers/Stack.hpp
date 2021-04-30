@@ -49,9 +49,11 @@ class Stack {
     container_.pop_back();
   }
 
-  friend bool operator==(const Stack<T, Container> &lhs, const Stack<T, Container> &rhs);
+  template<typename T_, typename Container_>
+  friend bool operator==(const Stack<T_, Container_> &lhs, const Stack<T_, Container_> &rhs);
 
-  friend bool operator<(const Stack<T, Container> &lhs, const Stack<T, Container> &rhs);
+  template<typename T_, typename Container_>
+  friend bool operator<(const Stack<T_, Container_> &lhs, const Stack<T_, Container_> &rhs);
 };
 
 template<typename T, typename Container>

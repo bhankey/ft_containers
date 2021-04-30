@@ -55,10 +55,10 @@ class Queue {
   void pop() {
     container_.pop_front();
   }
-
-  friend bool operator==(const Queue<T, Container> &lhs, const Queue<T, Container> &rhs);
-
-  friend bool operator<(const Queue<T, Container> &lhs, const Queue<T, Container> &rhs);
+  template<typename T_, typename Container_>
+  friend bool operator==(const Queue<T_, Container_> &lhs, const Queue<T_, Container_> &rhs);
+  template<typename T_, typename Container_>
+  friend bool operator<(const Queue<T_, Container_> &lhs, const Queue<T_, Container_> &rhs);
 };
 
 template<typename T, typename Container>

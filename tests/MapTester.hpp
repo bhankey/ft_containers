@@ -35,7 +35,7 @@ void printMap(const Map &map) { // TODO test without reference
 
 template<typename Map>
 void printMapReversed(const Map &map) { // TODO test without reference
-  typename Map::const_iterator it = map.rbegin();
+  typename Map::const_reverse_iterator it = map.rbegin();
   while (it != map.rend()) {
     printPair(*it);
     ++it;
@@ -108,6 +108,7 @@ void TestMap() {
     map[50] = "pam";
     PrintMapInfo(map);
     printMap(map);
+    printMapReversed(map);
     map[51] = "51";
     map[100] = "100";
     map[33333] = "33333333";
@@ -139,6 +140,7 @@ void TestMap() {
     std::cout << "erase: " << map.erase(5) << std::endl;
     PrintMapInfo(map);
     printMap(map);
+    printMapReversed(map);
     std::cout << "erase: " << map.erase(2) << std::endl;
     PrintMapInfo(map);
     printMap(map);
