@@ -104,6 +104,17 @@ class Map {
     return rb_tree_.rend();
   }
 
+  // Capacity
+  bool empty() const {
+    return rb_tree_.empty();
+  }
+  size_type size() const {
+    return rb_tree_.size();
+  }
+  size_type max_size() const {
+    return rb_tree_.max_size();
+  }
+
   // Modifiers
   void clear() {
     rb_tree_.clear();
