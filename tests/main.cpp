@@ -10,12 +10,14 @@
 #include "Map.hpp"
 #include "Stack.hpp"
 #include "Queue.hpp"
+#include "Multimap.hpp"
 
 #include "VectorTests.hpp"
 #include "ListTests.hpp"
 #include "MapTester.hpp"
 #include "StackTest.hpp"
 #include "QueueTests.hpp"
+#include "MultimapTests.hpp"
 
 int main() {
   TestVector<ft::Vector<std::string> >();
@@ -24,16 +26,7 @@ int main() {
   CustomCompareMyMap<ft::Map<int, std::string, std::greater<int> > >();
   TestStack<ft::Stack<std::string>, ft::List<std::string> >();
   TestQueue<ft::Queue<std::string>, ft::List<std::string> >();
-//  std::map<int, std::string> a;
-//  std::pair<int, std::string> b;
-//  b.first = 5;
-//  b.second = "lol";
-//  a.insert(b);
-//  b.second = "lal";
-//  a.insert(b);
-////  printByAlgorithms(a);
-//for (std::map<int, std::string>::iterator it = a.begin(); it != a.end(); ++it) {
-//  std::cout << "key: " << it->first << "; value: " << it->second << std::endl;
-//}
+  std::cout << "Bonus part" << std::endl;
+  TestMultimap<ft::Multimap<int, std::string> >();
   return 0;
 }

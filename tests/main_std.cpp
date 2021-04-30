@@ -14,6 +14,7 @@
 #include "MapTester.hpp"
 #include "StackTest.hpp"
 #include "QueueTests.hpp"
+#include "MultimapTests.hpp"
 
 int main() {
   TestVector<std::vector<std::string> >();
@@ -22,5 +23,7 @@ int main() {
   CustomCompareMyMap<std::map<int, std::string, std::greater<int> > >();
   TestStack<std::stack<std::string, std::list<std::string> >, std::list<std::string> >();
   TestQueue<std::queue<std::string, std::list<std::string> >, std::list<std::string> >();
+  std::cout << "Bonus part" << std::endl;
+  TestMultimap<std::multimap<int, std::string> >();
   return 0;
 }

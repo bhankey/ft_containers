@@ -49,7 +49,8 @@ void TestQueue() {
   PrintQueueInfo(full1);
   PrintQueue(full1);
   const Queue kQueue(a);
-  std::cout << kQueue.back() << " " << kQueue.front() << " " << kQueue.size() << " " << kQueue.empty();
+  std::cout << kQueue.back() << " " << kQueue.front()
+  << " " << kQueue.size() << " " << kQueue.empty() << std::endl;
 };
 
 #endif //FT_CONTAINERS_TESTS_QUEUETESTS_HPP_

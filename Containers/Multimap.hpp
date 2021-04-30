@@ -110,12 +110,12 @@ public:
   void clear() {
     rb_tree_.clear();
   }
-  std::pair<iterator, bool> insert(const value_type &value) {
+  iterator insert(const value_type &value) {
     return rb_tree_.insert_equal(value);
   }
   iterator insert(iterator hint, const value_type& value) {
     static_cast<void>(hint);
-    return rb_tree_.insert_equal(value).first;
+    return rb_tree_.insert_equal(value);
   }
   template<typename InputIt>
   void insert(InputIt first, InputIt last) {
