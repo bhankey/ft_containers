@@ -7,13 +7,16 @@
 
 #include "List.hpp"
 #include "Vector.hpp"
+#include "Map.hpp"
 
 #include "VectorTests.hpp"
 #include "ListTests.hpp"
+#include "MapTester.hpp"
 
 int main() {
- TestVector<ft::Vector<std::string> >();
- TestList<ft::List<std::string> >();
+// TestVector<ft::Vector<std::string> >();
+// TestList<ft::List<std::string> >();
+  TestMap<ft::Map<int, std::string> >();
 //  std::map<int, std::string> a;
 //  std::pair<int, std::string> b;
 //  b.first = 5;
