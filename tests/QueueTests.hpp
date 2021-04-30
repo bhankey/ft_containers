@@ -11,7 +11,7 @@ template<typename Queue>
 void PrintQueueInfo(const Queue &queue) {
   std::cout << "Map size: " << queue.size() << std::endl;
   if (!queue.empty()) {
-    std::cout << "front: " << queue.front() << "back: " << queue.back();
+    std::cout << "front: " << queue.front() << " back: " << queue.back() << std::endl;
   }
 }
 template<typename Queue>

@@ -11,7 +11,7 @@ template<typename Stack>
 void PrintStackInfo(const Stack &stack) {
   std::cout << "Map size: " << stack.size() << std::endl;
   if (!stack.empty()) {
-    std::cout << stack.top();
+    std::cout << stack.top() << std::endl
   }
 }
 template<typename Stack>

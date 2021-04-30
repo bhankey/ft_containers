@@ -1,6 +1,6 @@
 CXX		=	clang++
 
-CPPFLAGS	=	-Wall -Wextra -Werror  -IContainers -Iiterators -Itest -I. -std=c++98
+CPPFLAGS	=	-Wall -Wextra -Werror  -IContainers -IIterators -Itest -I. -std=c++98
 
 all: my std
 	diff myTest stdTest > differenceOfContainers

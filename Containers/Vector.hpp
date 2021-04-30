@@ -101,10 +101,10 @@ public:
   // Assign
   void assign(size_type count, const T& value) {
     clear();
-    size_ = count;
     if (count > capacity_) {
       reserve(count);
     }
+    size_ = count;
     size_type i = 0;
     while (count > 0) {
       allocator_.construct(array_ + i, value);
@@ -115,10 +115,11 @@ public:
   template<class InputIt>
   void assign(InputIt first, InputIt last) {
     clear();
-    size_ = ft::distance(first, last);
-    if (size_ > capacity_) {
-      reserve(size_);
+    size_type tmp_size = ft::distance(first, last);
+    if (tmp_size > capacity_) {
+      reserve(tmp_size);
     }
+    size_ = tmp_size;
     size_type i = 0;
     while (first != last) {
       allocator_.construct(array_ + i, *first);
