@@ -139,7 +139,7 @@ class Map {
     rb_tree_.erase(first, last);
   }
   size_type erase(const key_type& key) {
-    rb_tree_.erase(key);
+    return rb_tree_.erase(key);
   }
   void swap(Map& other) {
     ft::swap(rb_tree_, other.rb_tree_);
