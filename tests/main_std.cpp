@@ -9,13 +9,18 @@
 #include <list>
 #include <stack>
 
-#include "print.hpp"
 #include "VectorTests.hpp"
 #include "ListTests.hpp"
 #include "MapTester.hpp"
+#include "StackTest.hpp"
+#include "QueueTests.hpp"
 
 int main() {
-    TestVector<std::vector<std::string> >();
-    TestList<std::list<std::string> >();
-    return 0;
+  TestVector<std::vector<std::string> >();
+  TestList<std::list<std::string> >();
+  TestMap<std::map<int, std::string> >();
+  CustomCompareMyMap<std::map<int, std::string, std::greater<int> > >();
+  TestStack<std::stack<std::string>, std::list<std::string> >();
+  TestQueue<std::queue<std::string>, std::list<std::string> >();
+  return 0;
 }

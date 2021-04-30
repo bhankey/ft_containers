@@ -26,6 +26,7 @@ class Queue {
     if (this != &other) {
       container_ = other.container_;
     }
+    return *this;
   }
   ~Queue() {
   }

@@ -40,7 +40,7 @@ class Stack {
     return container_.back();
   }
   const value_type  &top() const {
-    container_.back();
+    return container_.back();
   }
   void push(const value_type &value) {
     container_.push_back(value);
