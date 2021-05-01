@@ -126,7 +126,7 @@ class RBTree {
     header_->left = header_;
     header_->right = header_;
   }
-  std::pair<iterator, bool> insert_unique(const Value &value) { // TODO understand what happens here
+  std::pair<iterator, bool> insert_unique(const Value &value) {
     Node_ptr  y = get_header();
     Node_ptr x = get_root();
     bool comp = true;
@@ -224,7 +224,7 @@ class RBTree {
     Node_ptr x = get_root();
     Node_ptr res = get_header();
     while (x != NULL) {
-      if (!compare_(get_key_(x->data), key)) { // TODO understand at all
+      if (!compare_(get_key_(x->data), key)) {
         res = x;
         x = x->left;
       }
