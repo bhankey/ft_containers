@@ -562,8 +562,8 @@ class RBTree {
               left_rotate(w);
               w = x_parent->left;
             }
-            w->color = x->parent->color;
-            x->parent->color = black;
+            w->color = x_parent->color;
+            x_parent->color = black;
             if (w->left != NULL) {
               w->left->color = black;
             }
