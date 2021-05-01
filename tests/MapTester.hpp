@@ -137,19 +137,19 @@ void TestMap() {
     printInsertRes<Map>(map.insert(std::make_pair(2, "2234")));
     PrintMapInfo(map);
     printMap(map);
-    std::cout << "erase: " << map.erase(5) << std::endl;
+    std::cout << "erase: " << map.erase(5) << " " << std::endl;
     PrintMapInfo(map);
     printMap(map);
     printMapReversed(map);
-    std::cout << "erase: " << map.erase(2) << std::endl;
+    std::cout << "erase: " << map.erase(2) << " " << std::endl;
     PrintMapInfo(map);
     printMap(map);
-    std::cout << "erase: " << map.erase(1) << std::endl;
+    std::cout << "erase: " << map.erase(1) << " " << std::endl;
     PrintMapInfo(map);
     printMap(map);
     map.insert(full.begin(), full.end());
     map.insert(full.begin(), full.end());
-    std::cout << "erase: " << map.erase(2);
+    std::cout << "erase: " << map.erase(2) << " " << std::endl;
     PrintMapInfo(map);
     printMap(map);
     map.erase(map.begin());
@@ -213,7 +213,7 @@ void TestMap() {
 }
 
 template<typename Map>
-void CustomCompareMyMap() { // TODO merge with main test function
+void CustomCompareMyMap() {
   std::cout << "Testing with not default compare" << std::endl;
   std::greater<int> a;
   Map map(a);
