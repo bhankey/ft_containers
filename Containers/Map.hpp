@@ -176,7 +176,7 @@ class Map {
     return rb_tree_.upper_bound(key);
   }
   key_compare key_comp() const {
-    rb_tree_.key_comp();
+    return rb_tree_.key_comp();
   }
   value_compare value_comp() const {
     return value_compare(compare_);
