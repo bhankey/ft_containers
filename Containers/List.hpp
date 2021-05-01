@@ -7,6 +7,8 @@
 
 #include "ListIterator.hpp"
 #include "ListNode.hpp"
+#include "ReverseIterator.hpp"
+#include "Utils.hpp"
 
 namespace ft {
 

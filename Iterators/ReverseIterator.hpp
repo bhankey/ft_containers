@@ -73,6 +73,9 @@ class ReverseIterator {
   ReverseIterator operator-(difference_type diff) const {
     return ReverseIterator(it + diff);
   }
+  difference_type operator-(const ReverseIterator &iter) const {
+    return (iter.it - it);
+  }
   ReverseIterator &operator-=(difference_type diff) {
     it += diff;
     return *this;
