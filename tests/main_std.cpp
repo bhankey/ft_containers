@@ -8,6 +8,7 @@
 #include <queue>
 #include <list>
 #include <stack>
+#include <set>
 
 #include "VectorTests.hpp"
 #include "ListTests.hpp"
@@ -15,6 +16,8 @@
 #include "StackTest.hpp"
 #include "QueueTests.hpp"
 #include "MultimapTests.hpp"
+#include "SetTests.hpp"
+#include "MultisetTests.hpp"
 
 int main() {
   TestVector<std::vector<std::string> >();
@@ -25,5 +28,7 @@ int main() {
   TestQueue<std::queue<std::string, std::list<std::string> >, std::list<std::string> >();
   std::cout << "Bonus part" << std::endl;
   TestMultimap<std::multimap<int, std::string> >();
+  TestSet<std::set<std::string> >();
+  TestMultiset<std::multiset<std::string> >();
   return 0;
 }
