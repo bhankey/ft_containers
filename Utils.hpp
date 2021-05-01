@@ -66,7 +66,6 @@ struct Identity {
     return x;
   }
 };
-// TODO change std::equal to my ft:: version
 }
 
 #endif //FT_CONTAINERS__UTILS_HPP_

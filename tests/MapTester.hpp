@@ -24,7 +24,7 @@ void printInsertRes(const std::pair<typename Map::iterator, bool> &pair) {
 }
 
 template<typename Map>
-void printMap(const Map &map) { // TODO test without reference
+void printMap(const Map &map) {
   typename Map::const_iterator it = map.begin();
   while (it != map.end()) {
     printPair(*it);
@@ -34,7 +34,7 @@ void printMap(const Map &map) { // TODO test without reference
 }
 
 template<typename Map>
-void printMapReversed(const Map &map) { // TODO test without reference
+void printMapReversed(const Map &map) {
   typename Map::const_reverse_iterator it = map.rbegin();
   while (it != map.rend()) {
     printPair(*it);
@@ -44,7 +44,7 @@ void printMapReversed(const Map &map) { // TODO test without reference
 }
 
 template <typename Map>
-void PrintMapInfo(const Map &map) { // TODO test without reference
+void PrintMapInfo(const Map &map) {
   std::cout << "Map size: " << map.size() << " max_size: " << map.max_size() << std::endl;
   if (!map.empty()) {
     std::cout << "first: ";
